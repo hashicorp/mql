@@ -25,3 +25,8 @@ func panicIfNil(a any, caller, missing string) {
 		panic(fmt.Sprintf("%s: missing %s", caller, missing))
 	}
 }
+
+func pointer[T any](input T) *T {
+	ret := input
+	return &ret
+}

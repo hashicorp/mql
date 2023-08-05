@@ -23,6 +23,10 @@ func (s *stack[T]) clear() {
 	s.data = nil
 }
 
+func (s *stack[T]) len() int {
+	return len(s.data)
+}
+
 func runesToString(s stack[rune]) string {
 	var result string
 	for {
