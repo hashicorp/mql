@@ -1,0 +1,25 @@
+name: Go fuzz test
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  fuzz-lexer-test:
+    name: Fuzz lexer test
+    runs-on: ubuntu-latest
+    steps:
+        # commit hash == v1.2.0
+      - uses: jidicula/go-fuzz-action@4f24eed45b25214f31a9fe035ca68ea2c88c6a13
+        with:
+          fuzz-time: 30s
+          fuzz-regexp: Fuzz_lexerNextToken
+  fuzz-parser-test:
+    name: Fuzz parser test
+    runs-on: ubuntu-latest
+    steps:
+        # commit hash == v1.2.0
+      - uses: jidicula/go-fuzz-action@4f24eed45b25214f31a9fe035ca68ea2c88c6a13
+        with:
+          fuzz-time: 30s
+          fuzz-regexp: Fuzz_parserParse
