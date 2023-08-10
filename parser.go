@@ -127,11 +127,12 @@ func (p *parser) parseComparisonExpr() (expr, error) {
 	for p.currentToken.Type != eofToken {
 		switch {
 		case p.currentToken.Type == startLogicalExprToken:
-			if cmpExpr.isComplete() {
+			switch {
+			case cmpExpr.isComplete():
 				return nil, fmt.Errorf("%s: %w after %s in: %q", op, ErrUnexpectedOpeningParen, cmpExpr, p.raw)
+			default:
+				return nil, fmt.Errorf("%s: %w in: %q", op, ErrUnexpectedOpeningParen, p.raw)
 			}
-
-			return p.parseLogicalExpr()
 
 			// we already have a complete comparisonExpr
 		case cmpExpr.isComplete() &&
@@ -146,6 +147,9 @@ func (p *parser) parseComparisonExpr() (expr, error) {
 
 		// columns must come first, so handle those conditions
 		case cmpExpr.column == "" && p.currentToken.Type != stringToken:
+			// this should be unreachable because parseComparisonExpr(...) is
+			// called when a stringToken is the current token, but I've kept
+			// this case here for completeness
 			return nil, fmt.Errorf("%s: %w: we expected a stringToken and got %s in: %q", op, ErrUnexpectedToken, p.currentToken.Value, p.raw)
 		case cmpExpr.column == "": // has to be stringToken representing the column
 			cmpExpr.column = p.currentToken.Value
@@ -201,8 +205,6 @@ func (p *parser) scan(opt ...Option) error {
 	}
 
 	switch p.currentToken.Type {
-	case errToken:
-		return fmt.Errorf("%s: %s", op, p.currentToken.Value)
 	case startLogicalExprToken:
 		p.openLogicalExpr.push(struct{}{})
 	case endLogicalExprToken:

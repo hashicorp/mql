@@ -27,6 +27,5 @@ func panicIfNil(a any, caller, missing string) {
 }
 
 func pointer[T any](input T) *T {
-	ret := input
-	return &ret
+	return &input
 }

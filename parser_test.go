@@ -126,6 +126,12 @@ func Test_parser(t *testing.T) {
 			},
 		},
 		{
+			name:            "err-missing-logicalOp",
+			raw:             "name=alice (name=eve)",
+			wantErrIs:       ErrMissingLogicalOp,
+			wantErrContains: "missing logical operator before right side",
+		},
+		{
 			name:            "err-too-many-rightExprs",
 			raw:             "name=alice=bob",
 			wantErrIs:       ErrUnexpectedToken,
@@ -184,6 +190,12 @@ func Test_parser(t *testing.T) {
 			raw:             "((name=alice)",
 			wantErrIs:       ErrMissingClosingParen,
 			wantErrContains: `missing closing paren in: "((name=alice)"`,
+		},
+		{
+			name:            "err-invalid-not-equal-after-whitespace",
+			raw:             "   !not",
+			wantErrIs:       ErrInvalidNotEqual,
+			wantErrContains: `mql.lexNotEqualState: invalid "!=" token, got "!n"`,
 		},
 		{
 			name: "success-double-parens",
@@ -261,6 +273,23 @@ func Test_parser(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "reverse-nested-logical-expr",
+			raw:  `name=one or (created_at>"now()-interval '1 day'")`,
+			want: &logicalExpr{
+				leftExpr: &comparisonExpr{
+					column:       "name",
+					comparisonOp: "=",
+					value:        pointer("one"),
+				},
+				logicalOp: "or",
+				rightExpr: &comparisonExpr{
+					column:       "created_at",
+					comparisonOp: ">",
+					value:        pointer("now()-interval '1 day'"),
+				},
+			},
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -298,5 +327,17 @@ func Fuzz_parserParse(f *testing.F) {
 				t.Errorf("unexpected expr: %v", expr)
 			}
 		}
+	})
+}
+
+func Test_scan(t *testing.T) {
+	t.Parallel()
+	// just negative tests
+	t.Run("err-scan-options", func(t *testing.T) {
+		p := newParser("name=alice")
+		err := p.scan(WithConverter("name", nil))
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrInvalidParameter)
+		assert.ErrorContains(t, err, "missing ConvertToSqlFunc: invalid parameter")
 	})
 }

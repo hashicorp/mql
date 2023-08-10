@@ -138,12 +138,8 @@ func Test_lexKeywordState(t *testing.T) {
 			},
 		},
 		{
-			name: "notEqualError",
-			raw:  "!not",
-			want: []token{
-				{Type: errToken, Value: `mql.lexNotEqualState: unexpected "=" after "!"`},
-				{Type: errToken, Value: `mql.lexNotEqualState: unexpected "=" after "!"`}, // will continue until you stop calling lexer.NextToken
-			},
+			name:            "notEqualError",
+			raw:             "!not",
 			wantErrIs:       ErrInvalidNotEqual,
 			wantErrContains: `mql.lexNotEqualState: invalid "!=" token, got "!n"`,
 		},
@@ -184,13 +180,13 @@ func Test_lexKeywordState(t *testing.T) {
 					whitespaceToken,
 					startLogicalExprToken,
 					endLogicalExprToken,
-					greaterThanOp,
-					greaterThanOrEqualOp,
-					lessThanOp,
-					lessThanOrEqualOp,
-					equalOp,
-					notEqualOp,
-					containsOp,
+					GreaterThanOp,
+					GreaterThanOrEqualOp,
+					LessThanOp,
+					LessThanOrEqualOp,
+					EqualOp,
+					NotEqualOp,
+					ContainsOp,
 				)
 				assert.Equal(want, tk)
 			}
@@ -225,24 +221,24 @@ func Test_lexWhitespaceState(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			assert, require := assert.New(t), require.New(t)
 
 			lex := newLexer(tc.raw)
 			tk, err := lex.nextToken()
 			require.NoError(err)
 			require.NotEqualValues(tk.Type,
-				errToken,
 				eofToken,
 				stringToken,
 				startLogicalExprToken,
 				endLogicalExprToken,
-				greaterThanOp,
-				greaterThanOrEqualOp,
-				lessThanOp,
-				lessThanOrEqualOp,
-				equalOp,
-				notEqualOp,
-				containsOp,
+				GreaterThanOp,
+				GreaterThanOrEqualOp,
+				LessThanOp,
+				LessThanOrEqualOp,
+				EqualOp,
+				NotEqualOp,
+				ContainsOp,
 			)
 			assert.Equal(tc.want, tk)
 		})
