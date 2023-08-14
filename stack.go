@@ -1,4 +1,5 @@
 // Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package mql
 
@@ -29,12 +30,8 @@ func (s *stack[T]) len() int {
 
 func runesToString(s stack[rune]) string {
 	var result string
-	for {
-		r, ok := s.pop()
-		if !ok {
-			break
-		}
-		result = string(r) + result
+	for i := 0; i < len(s.data); i++ {
+		result = string(s.data[i]) + result
 	}
 	return result
 }

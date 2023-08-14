@@ -1,4 +1,5 @@
 // Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package mql
 
@@ -27,6 +28,5 @@ func panicIfNil(a any, caller, missing string) {
 }
 
 func pointer[T any](input T) *T {
-	ret := input
-	return &ret
+	return &input
 }

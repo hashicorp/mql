@@ -1,4 +1,5 @@
 // Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package mql
 
@@ -13,7 +14,6 @@ const eof rune = -1
 
 const (
 	unknownToken tokenType = iota
-	errToken
 	eofToken
 	whitespaceToken
 	stringToken
@@ -34,7 +34,6 @@ const (
 
 var tokenTypeToString = map[tokenType]string{
 	unknownToken:            "unknown",
-	errToken:                "err",
 	eofToken:                "eof",
 	whitespaceToken:         "ws",
 	stringToken:             "str",

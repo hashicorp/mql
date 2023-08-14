@@ -1,4 +1,5 @@
 // Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package mql
 
@@ -9,7 +10,8 @@ import (
 type exprType int
 
 const (
-	comparisonExprType exprType = iota
+	unknownExprType exprType = iota
+	comparisonExprType
 	logicalExprType
 )
 
@@ -18,30 +20,31 @@ type expr interface {
 	String() string
 }
 
-type comparisonOp string
+// ComparisonOp defines a set of comparison operators
+type ComparisonOp string
 
 const (
-	greaterThanOp        comparisonOp = ">"
-	greaterThanOrEqualOp              = ">="
-	lessThanOp                        = "<"
-	lessThanOrEqualOp                 = "<="
-	equalOp                           = "="
-	notEqualOp                        = "!="
-	containsOp                        = "%"
+	GreaterThanOp        ComparisonOp = ">"
+	GreaterThanOrEqualOp ComparisonOp = ">="
+	LessThanOp           ComparisonOp = "<"
+	LessThanOrEqualOp    ComparisonOp = "<="
+	EqualOp              ComparisonOp = "="
+	NotEqualOp           ComparisonOp = "!="
+	ContainsOp           ComparisonOp = "%"
 )
 
-func newComparisonOp(s string) (comparisonOp, error) {
+func newComparisonOp(s string) (ComparisonOp, error) {
 	const op = "newComparisonOp"
-	switch s {
+	switch ComparisonOp(s) {
 	case
-		string(greaterThanOp),
-		string(greaterThanOrEqualOp),
-		string(lessThanOp),
-		string(lessThanOrEqualOp),
-		string(equalOp),
-		string(notEqualOp),
-		string(containsOp):
-		return comparisonOp(s), nil
+		GreaterThanOp,
+		GreaterThanOrEqualOp,
+		LessThanOp,
+		LessThanOrEqualOp,
+		EqualOp,
+		NotEqualOp,
+		ContainsOp:
+		return ComparisonOp(s), nil
 	default:
 		return "", fmt.Errorf("%s: %w %q", op, ErrInvalidComparisonOp, s)
 	}
@@ -49,7 +52,7 @@ func newComparisonOp(s string) (comparisonOp, error) {
 
 type comparisonExpr struct {
 	column       string
-	comparisonOp comparisonOp
+	comparisonOp ComparisonOp
 	value        *string
 }
 
@@ -72,19 +75,64 @@ func (e *comparisonExpr) isComplete() bool {
 	return e.column != "" && e.comparisonOp != "" && e.value != nil
 }
 
+// defaultValidateConvert will validate the comparison expr value, and then convert the
+// expr to its SQL equivalence.
+func defaultValidateConvert(columnName string, comparisonOp ComparisonOp, columnValue *string, validator validator, opt ...Option) (*WhereClause, error) {
+	const op = "mql.(comparisonExpr).convertToSql"
+	switch {
+	case columnName == "":
+		return nil, fmt.Errorf("%s: %w", op, ErrMissingColumn)
+	case comparisonOp == "":
+		return nil, fmt.Errorf("%s: %w", op, ErrMissingComparisonOp)
+	case isNil(columnValue):
+		return nil, fmt.Errorf("%s: %w", op, ErrMissingComparisonValue)
+	case validator.fn == nil:
+		return nil, fmt.Errorf("%s: missing validator function: %w", op, ErrInvalidParameter)
+	case validator.typ == "":
+		return nil, fmt.Errorf("%s: missing validator type: %w", op, ErrInvalidParameter)
+	}
+
+	// everything was validated at the start, so we know this is a valid/complete comparisonExpr
+	e := &comparisonExpr{
+		column:       columnName,
+		comparisonOp: comparisonOp,
+		value:        columnValue,
+	}
+
+	v, err := validator.fn(*e.value)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %q in %s: %w", op, *e.value, e.String(), ErrInvalidParameter)
+	}
+	if validator.typ == "time" {
+		columnName = fmt.Sprintf("%s::date", columnName)
+	}
+	switch e.comparisonOp {
+	case ContainsOp:
+		return &WhereClause{
+			Condition: fmt.Sprintf("%s like ?", columnName),
+			Args:      []any{fmt.Sprintf("%%%s%%", v)},
+		}, nil
+	default:
+		return &WhereClause{
+			Condition: fmt.Sprintf("%s%s?", columnName, e.comparisonOp),
+			Args:      []any{v},
+		}, nil
+	}
+}
+
 type logicalOp string
 
 const (
 	andOp logicalOp = "and"
-	orOp            = "or"
+	orOp  logicalOp = "or"
 )
 
 func newLogicalOp(s string) (logicalOp, error) {
 	const op = "newLogicalOp"
-	switch s {
+	switch logicalOp(s) {
 	case
-		string(andOp),
-		string(orOp):
+		andOp,
+		orOp:
 		return logicalOp(s), nil
 	default:
 		return "", fmt.Errorf("%s: %w %q", op, ErrInvalidLogicalOp, s)

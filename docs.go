@@ -4,7 +4,7 @@
 /*
 Package mql provides a language that end users can use to query your
 database models, without them having to learn SQL or exposing your
-application to sql injection.
+application to SQL injection.
 
 You define a model you wish to query as a Go struct and provide a mql query. The
 package then uses the query along with a model to generate a parameterized SQL
