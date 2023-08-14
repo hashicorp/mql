@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 /*
 Package mql provides a language that end users can use to query your
 database models, without them having to learn SQL or exposing your
