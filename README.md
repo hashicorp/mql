@@ -12,7 +12,7 @@ application to SQL injection.
 ```Go
 w, err := mql.Parse("name=alice or name=bob)",User{})
 if err != nil {
-    return nil, err
+  return nil, err
 }
 err = db.Where(w.Condition, w.Args...).Find(&users).Error
 ```
@@ -22,7 +22,7 @@ err = db.Where(w.Condition, w.Args...).Find(&users).Error
 ```Go
 w, err := mql.Parse("name=alice or name=bob)",User{})
 if err != nil {
-    return nil, err
+  return nil, err
 }
 q := fmt.Sprintf("select * from users where %s", w.Condition)
 rows, err := db.Query(q, w.Args...)
@@ -33,7 +33,7 @@ rows, err := db.Query(q, w.Args...)
 ```Go
 w, err := mql.Parse("name=alice or name=bob)",User{})
 if err != nil {
-    return nil, err
+  return nil, err
 }
 err := rw.SearchWhere(ctx, &users, w.Condition, w.Args)
 ```
