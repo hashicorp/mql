@@ -10,7 +10,7 @@
 // Gorm: https://github.com/go-gorm/gorm
 //
 //	w, err := mql.Parse("name=alice or name=bob)",User{})
-//	  if err != nil {
+//	if err != nil {
 //	  return nil, err
 //	}
 //	err = db.Where(w.Condition, w.Args...).Find(&users).Error
