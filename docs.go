@@ -30,7 +30,7 @@
 //	if err != nil {
 //	  return nil, err
 //	}
-//	err := rw.SearchWhere(ctx, &users, w.C
+//	err := rw.SearchWhere(ctx, &users, w.Condition, w.Args)
 //
 // # Simple Usage
 //
