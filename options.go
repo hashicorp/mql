@@ -95,7 +95,9 @@ func WithIgnoredFields(fieldName ...string) Option {
 
 // WithPgPlaceholders will use parameters placeholders that are compatible with
 // the postgres pg driver which requires a placeholder like $1 instead of ?.
-// See: https://pkg.go.dev/github.com/lib/pq
+// See:
+//   - https://pkg.go.dev/github.com/jackc/pgx/v5
+//   - https://pkg.go.dev/github.com/lib/pq
 func WithPgPlaceholders() Option {
 	return func(o *options) error {
 		o.withPgPlaceholder = true
