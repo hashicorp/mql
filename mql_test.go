@@ -67,6 +67,16 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
+			name:  "success-WithPgPlaceholder",
+			query: "name=bob or (name%alice or name=eve)",
+			model: testModel{},
+			opts:  []mql.Option{mql.WithPgPlaceholders()},
+			want: &mql.WhereClause{
+				Condition: "(name=$1 or (name like $2 or name=$3))",
+				Args:      []any{"bob", "%alice%", "eve"},
+			},
+		},
+		{
 			name:            "err-leftExpr-without-op",
 			query:           "age (name=alice)",
 			model:           testModel{},

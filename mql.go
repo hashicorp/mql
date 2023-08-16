@@ -18,7 +18,8 @@ type WhereClause struct {
 }
 
 // Parse will parse the query and use the provided database model to create a
-// where clause. Supported options: WithColumnMap, WithIgnoreFields
+// where clause. Supported options: WithColumnMap, WithIgnoreFields,
+// WithConverter, WithPgPlaceholder
 func Parse(query string, model any, opt ...Option) (*WhereClause, error) {
 	const op = "mql.Parse"
 	switch {
@@ -39,6 +40,16 @@ func Parse(query string, model any, opt ...Option) (*WhereClause, error) {
 	e, err := exprToWhereClause(expr, fValidators, opt...)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	opts, err := getOpts(opt...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	if opts.withPgPlaceholder {
+		for i := 0; i < len(e.Args); i++ {
+			placeholder := fmt.Sprintf("$%d", i+1)
+			e.Condition = strings.Replace(e.Condition, "?", placeholder, 1)
+		}
 	}
 	return e, nil
 }
