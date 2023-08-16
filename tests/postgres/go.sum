@@ -30,8 +30,12 @@ github.com/hashicorp/go-secure-stdlib/base62 v0.1.2/go.mod h1:EdWO6czbmthiwZ3/PU
 github.com/hashicorp/go-uuid v1.0.2/go.mod h1:6SBZvOh/SIDV7/2o3Jml5SYk/TvGqwFJ/bN7x4byOro=
 github.com/hashicorp/go-uuid v1.0.3 h1:2gKiV6YVmrJ1i2CKKa9obLvRieoRGviZFL26PcT/Co8=
 github.com/hashicorp/go-uuid v1.0.3/go.mod h1:6SBZvOh/SIDV7/2o3Jml5SYk/TvGqwFJ/bN7x4byOro=
+github.com/hashicorp/mql v0.1.0 h1:Tm5uqhsZcAhq7EEGet1uDgIvbiBgF+Sfo67xGBaw1pI=
+github.com/hashicorp/mql v0.1.0/go.mod h1:pSghNOmPNBD9/Bvx0M4EC2JB/mEVA6qlB9IKpNCiqOA=
 github.com/hashicorp/mql v0.1.1-0.20230816182306-41284ee07cba h1:POmgqplBGHwq0h/lGsw11sRsPv77yEeamJFXqyyc4g4=
 github.com/hashicorp/mql v0.1.1-0.20230816182306-41284ee07cba/go.mod h1:pSghNOmPNBD9/Bvx0M4EC2JB/mEVA6qlB9IKpNCiqOA=
+github.com/hashicorp/mql v0.1.1-0.20230816193610-066beca8effe h1:FayETojMYwMD/yCsxYCAK2h9H45ZPsILCeRvkLV9rGA=
+github.com/hashicorp/mql v0.1.1-0.20230816193610-066beca8effe/go.mod h1:pSghNOmPNBD9/Bvx0M4EC2JB/mEVA6qlB9IKpNCiqOA=
 github.com/jackc/chunkreader v1.0.0/go.mod h1:RT6O25fNZIuasFJRyZ4R/Y2BbhasbmZXF9QQ7T3kePo=
 github.com/jackc/chunkreader/v2 v2.0.0/go.mod h1:odVSm741yZoC3dpHEUXIqA9tQRhFrgOHwnPIn9lDKlk=
 github.com/jackc/chunkreader/v2 v2.0.1 h1:i+RDz65UE+mmpjTfyz0MoVTnzeYxroil2G82ki7MGG8=

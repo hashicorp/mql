@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/hashicorp/go-dbw v0.0.0-20230612165830-f471701ba4c2
-	github.com/hashicorp/mql v0.1.1-0.20230816182306-41284ee07cba
+	github.com/hashicorp/mql v0.1.1-0.20230816193610-066beca8effe
 	github.com/stretchr/testify v1.8.4
 	gorm.io/driver/postgres v1.5.0
 	gorm.io/gorm v1.25.1
