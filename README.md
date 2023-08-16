@@ -20,7 +20,7 @@ err = db.Where(w.Condition, w.Args...).Find(&users).Error
 ### [database/sql](https://pkg.go.dev/database/sql)
 
 ```Go
-w, err := mql.Parse("name=alice or name=bob)",User{})
+w, err := mql.Parse("name=alice or name=bob)",User{}, mql.WithPgPlaceholders())
 if err != nil {
   return nil, err
 }
