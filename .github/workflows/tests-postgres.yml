@@ -1,5 +1,3 @@
-# Copyright (c) HashiCorp, Inc.
-
 name: Go
 
 on:
@@ -9,14 +7,29 @@ on:
     branches: [main]
 
 jobs:
-  build:
-    name: Build
+  postgres:
     strategy:
-      fail-fast: true
       matrix:
-        go: ["1.20", "1.19", "1.18"]
-        platform: [ubuntu-latest] # can not run in windows OS
+        dbversion: ["postgres:latest"]
+        go: ["1.21", "1.20", "1.19"]
+        platform: [ubuntu-latest] # can not run in macOS and Windows
     runs-on: ${{ matrix.platform }}
+
+    services:
+      postgres:
+        image: ${{ matrix.dbversion }}
+        env:
+          POSTGRES_PASSWORD: go_db
+          POSTGRES_USER: go_db
+          POSTGRES_DB: go_db
+        ports:
+          - 9920:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Set up Go 1.x
@@ -33,10 +46,5 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ matrix.go }}-${{ hashFiles('tests/go.mod') }}
 
-      - name: Build
-        run: |
-          go build ./...
-
-      - name: Test
-        run: |
-          go test ./...
+      - name: Tests
+        run: make test-postgres
