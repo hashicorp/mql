@@ -6,6 +6,7 @@ Canonical reference for changes, improvements, and bugfixes for mql.
 
 It was a fast-follower patch release, but was needed to support developers that
 use the [database/sql](https://pkg.go.dev/database/sql) package.
+
 * tests: add postgres integration tests ([PR](https://github.com/hashicorp/mql/pull/8)).
 * feat: add WithPgPlaceholder() option
   ([PR](https://github.com/hashicorp/mql/pull/7)). This PR was critical to
