@@ -28,13 +28,6 @@ func testInsertUser(t *testing.T, rw dbw.Writer, u *user) {
 	require.NoError(t, rw.Create(testCtx, u))
 }
 
-func testDeleteUsers(t *testing.T, rw dbw.Writer) {
-	t.Helper()
-	testCtx := context.Background()
-	_, err := rw.Exec(testCtx, "delete from users", nil)
-	require.NoError(t, err)
-}
-
 const (
 	testDbDsn                = "postgresql://go_db:go_db@localhost:9920/go_db?sslmode=disable"
 	testCreateTablesPostgres = `
