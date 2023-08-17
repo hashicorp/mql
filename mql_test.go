@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"strings"
 	"testing"
 	"time"
 
@@ -220,4 +221,156 @@ func TestParse(t *testing.T) {
 
 func pointer[T any](input T) *T {
 	return &input
+}
+
+// Fuzz_mqlParse is primarily focused on finding sql injection and panics
+func Fuzz_mqlParse(f *testing.F) {
+	tc := []string{">=!=", "name=default OR age", "< <= = != AND OR and or", "1  !=   \"2\"", "(Name=\"Alice Eve\")"}
+	for _, tc := range tc {
+		f.Add(tc)
+	}
+	f.Fuzz(func(t *testing.T, s string) {
+		where, err := mql.Parse(s, testModel{})
+		if err == nil {
+			for _, kw := range sqlKeywords {
+				if strings.Contains(strings.ToLower(where.Condition), kw) {
+					t.Errorf("unexpected sql keyword %q in %s", kw, where.Condition)
+				}
+			}
+		}
+	})
+}
+
+var sqlKeywords = []string{
+	"select", "from", "where", "join", "left", "right", "inner", "outer",
+	"on", "group", "by", "order", "having", "insert", "update", "delete",
+	"values", "set", "as", "distinct", "limit", "offset", "and", "or",
+	"not", "in", "like", "between", "is", "null", "true", "false",
+	"case", "when", "then", "else", "end", "while", "for", "foreach",
+	"create", "alter", "drop", "table", "view", "index", "sequence",
+	"database", "schema", "function", "procedure", "trigger", "event",
+	"primary", "foreign", "references", "constraint", "unique",
+	"default", "auto_increment", "check", "cascade",
+	"explain", "analyze", "describe",
+	"primary", "foreign", "key", "index", "references", "check", "tablespace",
+	"sequence", "constraint", "default", "charset", "collate", "column",
+	"table", "view", "materialized", "index", "trigger", "domain",
+	"data", "type", "array", "enum", "oid", "range", "returning",
+	"inherits", "rule", "with", "time", "zone", "at", "serializable",
+	"repeatable", "committed", "uncommitted", "isolation", "lock",
+	"share", "mode", "nowait", "wait", "array_agg", "avg", "count",
+	"max", "min", "cast", "convert", "overlaps", "date",
+	"time", "timestamp", "extract", "current_date", "current_time",
+	"current_timestamp", "now", "current_user", "current_schema",
+	"transaction", "true", "false", "unknown", "absolute", "relative",
+	"forward", "backward", "transaction", "level", "read", "immediate",
+	"deferred", "none", "autocommit", "off", "on", "savepoint",
+	"rollback", "release", "chain", "cascaded", "local", "session",
+	"global", "temporary", "temp", "unsigned", "signed", "precision",
+	"first", "next", "both", "prior", "absolute", "relative", "forward",
+	"backward", "localtime", "localtimestamp", "timeofday",
+	"array", "row", "multiset", "map", "json", "xml", "struct", "clob",
+	"blob", "nclob", "bytea", "jsonb", "jsonpath", "xmltype", "tinyint",
+	"smallint", "integer", "bigint", "decimal", "numeric", "real",
+	"double", "float", "character", "char", "varchar", "nchar",
+	"nvarchar", "binary", "varbinary", "timestamp", "interval",
+	"year", "month", "day", "hour", "minute", "second", "zone",
+	"boolean", "bit", "enum", "set", "uuid", "oid", "cidr", "inet",
+	"macaddr", "serial", "bigserial", "money", "setof", "record",
+	"anyelement", "anyarray", "anynonarray", "anyenum", "anyrange",
+	"array_agg", "string_agg", "avg", "count", "max", "min",
+	"sum", "stddev", "var_pop", "var_samp", "covar_pop",
+	"covar_samp", "corr", "regr_avgx", "regr_avgy",
+	"regr_count", "regr_intercept", "regr_r2", "regr_slope",
+	"regr_sxx", "regr_sxy", "regr_syy", "bit_and", "bit_or",
+	"bit_xor", "row_number", "rank", "dense_rank", "percent_rank",
+	"cume_dist", "ntile", "first_value", "last_value", "lead",
+	"lag", "percentile_cont", "percentile_disc", "mode", "with",
+	"insensitive", "sensitive", "scroll", "cursor", "without",
+	"type", "only", "precision", "double", "within",
+	"zone", "over", "lead", "lag", "ignore",
+	"nulls", "exclude", "ties", "from", "leading", "trailing",
+	"both", "not", "first", "last", "after", "before", "each",
+	"statement", "at", "at", "time", "zone", "serializable",
+	"repeatable", "read", "committed", "uncommitted", "isolation",
+	"level", "lock", "share", "mode", "nowait", "wait", "explain",
+	"analyze", "describe", "cast", "convert", "to", "using",
+	"explicit", "implicit", "inner", "cross", "left", "right",
+	"outer", "full", "join", "using", "matched", "not", "then",
+	"insert", "ignore", "into", "first", "last", "values", "null",
+	"before", "after", "each", "row", "statement", "at", "time",
+	"zone", "serializable", "repeatable", "read", "committed",
+	"uncommitted", "isolation", "level", "on", "delete", "natural",
+	"set", "default", "auto_increment", "check", "cascade", "with",
+	"option", "modify", "auto_increment", "check", "cascade", "in",
+	"out", "inout", "as", "insensitive", "sensitive", "language",
+	"sql", "validator", "old", "new", "old_table", "new_table",
+	"old_row", "new_row", "after_trigger", "before_trigger",
+	"instead_of_trigger", "execute", "function", "procedure",
+	"returns", "table", "return", "rows", "cursor", "inserting",
+	"deleting", "updating", "after_statement", "before_statement",
+	"declare", "condition", "signal", "resignal", "undo", "handler",
+	"get", "diagnostics", "reset", "set", "position", "resume",
+	"suspend", "leave", "iterate", "repeat", "until", "close",
+	"fetch", "open", "prepare", "execute", "deallocate", "forward",
+	"backward", "absolute", "relative", "release", "rollback",
+	"work", "savepoint", "scroll", "replace", "escape", "glob",
+	"regexp", "matches", "unknown", "cube", "rollup", "ordering",
+	"search", "depth", "children", "siblings", "value", "positive",
+	"negative", "union", "intersect", "except", "case", "cast",
+	"convert", "current_date", "current_time", "current_timestamp",
+	"date_part", "date_trunc", "extract", "localtime",
+	"localtimestamp", "now", "timeofday", "timestampadd",
+	"timestampdiff", "array_agg", "string_agg", "avg", "count",
+	"max", "min", "sum", "stddev", "var_pop", "var_samp",
+	"covar_pop", "covar_samp", "corr", "regr_avgx", "regr_avgy",
+	"regr_count", "regr_intercept", "regr_r2", "regr_slope",
+	"regr_sxx", "regr_sxy", "regr_syy", "bit_and", "bit_or",
+	"bit_xor", "row_number", "rank", "dense_rank", "percent_rank",
+	"cume_dist", "ntile", "first_value", "last_value", "lead",
+	"lag", "percentile_cont", "percentile_disc", "mode", "with",
+	"insensitive", "sensitive", "scroll", "cursor", "without",
+	"type", "only", "first", "next", "both", "prior", "absolute",
+	"relative", "forward", "backward", "transaction", "isolation",
+	"level", "read", "uncommitted", "committed", "repeatable",
+	"serializable", "immediate", "deferred", "explicit", "none",
+	"current_schema", "current_user", "session_user", "system_user",
+	"user", "autocommit", "off", "on", "savepoint", "rollback",
+	"release", "work", "chain", "cascaded", "local", "release",
+	"session", "global", "temporary", "temp", "unsigned", "signed",
+	"precision", "double", "within", "zone", "over", "lead", "lag",
+	"ignore", "nulls", "exclude", "ties", "from", "leading", "trailing",
+	"both", "not", "first", "last", "after", "before", "each",
+	"statement", "at", "time", "zone", "serializable", "repeatable",
+	"read", "committed", "uncommitted", "isolation", "level",
+	"lock", "share", "mode", "nowait", "wait", "explain", "analyze",
+	"describe", "cast", "convert", "to", "using", "explicit",
+	"implicit", "inner", "cross", "left", "right", "outer", "full",
+	"join", "using", "matched", "not", "then", "insert", "ignore",
+	"into", "first", "last", "values", "null", "before", "after",
+	"each", "row", "statement", "at", "time", "zone", "serializable",
+	"repeatable", "read", "committed", "uncommitted", "isolation",
+	"level", "on", "delete", "natural", "set", "default",
+	"auto_increment", "check", "cascade", "with", "option",
+	"modify", "auto_increment", "check", "cascade", "in", "out",
+	"inout", "as", "insensitive", "sensitive", "language", "sql",
+	"validator", "old", "new", "old_table", "new_table", "old_row",
+	"new_row", "after_trigger", "before_trigger",
+	"instead_of_trigger", "execute", "function", "procedure",
+	"returns", "table", "return", "rows", "cursor", "inserting",
+	"deleting", "updating", "after_statement", "before_statement",
+	"declare", "condition", "signal", "resignal", "undo", "handler",
+	"get", "diagnostics", "reset", "set", "position", "resume",
+	"suspend", "leave", "iterate", "repeat", "until", "close",
+	"fetch", "open", "prepare", "execute", "deallocate", "forward",
+	"backward", "absolute", "relative", "release", "rollback",
+	"work", "savepoint", "scroll", "replace", "escape", "glob",
+	"regexp", "matches", "unknown", "cube", "rollup", "ordering",
+	"search", "depth", "children", "siblings", "value", "positive",
+	"negative", "union", "intersect", "except", "case", "cast",
+	"convert", "current_date", "current_time", "current_timestamp",
+	"date_part", "date_trunc", "extract", "localtime",
+	"localtimestamp", "now", "timeofday", "timestampadd",
+	"timestampdiff", "array_agg", "string_agg", "avg", "count",
+	"max", "min", "sum",
 }
