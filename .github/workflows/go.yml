@@ -40,3 +40,7 @@ jobs:
       - name: Test
         run: |
           go test ./...
+      
+      - name: Coverage
+        run: |
+          make coverage-diff

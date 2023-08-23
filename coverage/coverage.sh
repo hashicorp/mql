@@ -1,7 +1,7 @@
-# Copyright (c) 2023 Nuno Cruces
-
 #!/usr/bin/env bash
 set -euo pipefail
+
+# Copyright (c) 2023 Nuno Cruces
 
 # This is a simple script to generate an HTML coverage report,
 # and SVG badge for your Go project.
