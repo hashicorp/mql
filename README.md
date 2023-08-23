@@ -1,5 +1,9 @@
 # MQL
-[![Go Reference](https://pkg.go.dev/badge/github.com/hashicorp/mql/mql.svg)](https://pkg.go.dev/github.com/hashicorp/mql)
+[![Go
+Reference](https://pkg.go.dev/badge/github.com/hashicorp/mql/mql.svg)](https://pkg.go.dev/github.com/hashicorp/mql)
+[![Go Report
+Card](https://goreportcard.com/badge/github.com/hashicorp/mql)](https://goreportcard.com/report/github.com/hashicorp/mql)
+[![Go Coverage](https://raw.githack.com/hashicorp/mql/coverage/coverage.svg)](https://raw.githack.com/hashicorp/mql/coverage/coverage.html)
 
 The [mql](https://pkg.go.dev/github.com/hashicorp/mql) (Model Query Language) Go package provides a language that end users can use to query your
 database models, without them having to learn SQL or exposing your

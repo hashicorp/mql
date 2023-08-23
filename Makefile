@@ -24,3 +24,8 @@ test-postgres:
 	##############################################################
 	cd ./tests/postgres && \
 	DB_DIALECT=postgres DB_DSN="postgresql://go_db:go_db@localhost:9920/go_db?sslmode=disable"  go test -race -count=1 ./...
+
+.PHONY: coverage
+coverage: 
+	cd coverage && \
+	./coverage.sh

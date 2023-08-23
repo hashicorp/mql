@@ -1,0 +1,1262 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>mql: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/hashicorp/mql/common.go (100.0%)</option>
+				
+				<option value="file1">github.com/hashicorp/mql/expr.go (100.0%)</option>
+				
+				<option value="file2">github.com/hashicorp/mql/lex.go (100.0%)</option>
+				
+				<option value="file3">github.com/hashicorp/mql/mql.go (98.2%)</option>
+				
+				<option value="file4">github.com/hashicorp/mql/options.go (100.0%)</option>
+				
+				<option value="file5">github.com/hashicorp/mql/parser.go (93.2%)</option>
+				
+				<option value="file6">github.com/hashicorp/mql/stack.go (100.0%)</option>
+				
+				<option value="file7">github.com/hashicorp/mql/token.go (100.0%)</option>
+				
+				<option value="file8">github.com/hashicorp/mql/validate.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package mql
+
+import (
+        "fmt"
+        "reflect"
+)
+
+// isNil reports if a is nil
+func isNil(a any) bool <span class="cov8" title="1">{
+        if a == nil </span><span class="cov8" title="1">{
+                return true
+        }</span>
+        <span class="cov8" title="1">switch reflect.TypeOf(a).Kind() </span>{
+        case reflect.Ptr, reflect.Map, reflect.Chan, reflect.Slice, reflect.Func:<span class="cov8" title="1">
+                return reflect.ValueOf(a).IsNil()</span>
+        }
+        <span class="cov8" title="1">return false</span>
+}
+
+// panicIfNil will panic if a is nil
+func panicIfNil(a any, caller, missing string) <span class="cov8" title="1">{
+        if isNil(a) </span><span class="cov8" title="1">{
+                panic(fmt.Sprintf("%s: missing %s", caller, missing))</span>
+        }
+}
+
+func pointer[T any](input T) *T <span class="cov8" title="1">{
+        return &amp;input
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package mql
+
+import (
+        "fmt"
+)
+
+type exprType int
+
+const (
+        unknownExprType exprType = iota
+        comparisonExprType
+        logicalExprType
+)
+
+type expr interface {
+        Type() exprType
+        String() string
+}
+
+// ComparisonOp defines a set of comparison operators
+type ComparisonOp string
+
+const (
+        GreaterThanOp        ComparisonOp = "&gt;"
+        GreaterThanOrEqualOp ComparisonOp = "&gt;="
+        LessThanOp           ComparisonOp = "&lt;"
+        LessThanOrEqualOp    ComparisonOp = "&lt;="
+        EqualOp              ComparisonOp = "="
+        NotEqualOp           ComparisonOp = "!="
+        ContainsOp           ComparisonOp = "%"
+)
+
+func newComparisonOp(s string) (ComparisonOp, error) <span class="cov8" title="1">{
+        const op = "newComparisonOp"
+        switch ComparisonOp(s) </span>{
+        case
+                GreaterThanOp,
+                GreaterThanOrEqualOp,
+                LessThanOp,
+                LessThanOrEqualOp,
+                EqualOp,
+                NotEqualOp,
+                ContainsOp:<span class="cov8" title="1">
+                return ComparisonOp(s), nil</span>
+        default:<span class="cov8" title="1">
+                return "", fmt.Errorf("%s: %w %q", op, ErrInvalidComparisonOp, s)</span>
+        }
+}
+
+type comparisonExpr struct {
+        column       string
+        comparisonOp ComparisonOp
+        value        *string
+}
+
+// Type returns the expr type
+func (e *comparisonExpr) Type() exprType <span class="cov8" title="1">{
+        return comparisonExprType
+}</span>
+
+// String returns a string rep of the expr
+func (e *comparisonExpr) String() string <span class="cov8" title="1">{
+        switch e.value </span>{
+        case nil:<span class="cov8" title="1">
+                return fmt.Sprintf("(comparisonExpr: %s %s nil)", e.column, e.comparisonOp)</span>
+        default:<span class="cov8" title="1">
+                return fmt.Sprintf("(comparisonExpr: %s %s %s)", e.column, e.comparisonOp, *e.value)</span>
+        }
+}
+
+func (e *comparisonExpr) isComplete() bool <span class="cov8" title="1">{
+        return e.column != "" &amp;&amp; e.comparisonOp != "" &amp;&amp; e.value != nil
+}</span>
+
+// defaultValidateConvert will validate the comparison expr value, and then convert the
+// expr to its SQL equivalence.
+func defaultValidateConvert(columnName string, comparisonOp ComparisonOp, columnValue *string, validator validator, opt ...Option) (*WhereClause, error) <span class="cov8" title="1">{
+        const op = "mql.(comparisonExpr).convertToSql"
+        switch </span>{
+        case columnName == "":<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: %w", op, ErrMissingColumn)</span>
+        case comparisonOp == "":<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: %w", op, ErrMissingComparisonOp)</span>
+        case isNil(columnValue):<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: %w", op, ErrMissingComparisonValue)</span>
+        case validator.fn == nil:<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: missing validator function: %w", op, ErrInvalidParameter)</span>
+        case validator.typ == "":<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: missing validator type: %w", op, ErrInvalidParameter)</span>
+        }
+
+        // everything was validated at the start, so we know this is a valid/complete comparisonExpr
+        <span class="cov8" title="1">e := &amp;comparisonExpr{
+                column:       columnName,
+                comparisonOp: comparisonOp,
+                value:        columnValue,
+        }
+
+        v, err := validator.fn(*e.value)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("%s: %q in %s: %w", op, *e.value, e.String(), ErrInvalidParameter)
+        }</span>
+        <span class="cov8" title="1">if validator.typ == "time" </span><span class="cov8" title="1">{
+                columnName = fmt.Sprintf("%s::date", columnName)
+        }</span>
+        <span class="cov8" title="1">switch e.comparisonOp </span>{
+        case ContainsOp:<span class="cov8" title="1">
+                return &amp;WhereClause{
+                        Condition: fmt.Sprintf("%s like ?", columnName),
+                        Args:      []any{fmt.Sprintf("%%%s%%", v)},
+                }, nil</span>
+        default:<span class="cov8" title="1">
+                return &amp;WhereClause{
+                        Condition: fmt.Sprintf("%s%s?", columnName, e.comparisonOp),
+                        Args:      []any{v},
+                }, nil</span>
+        }
+}
+
+type logicalOp string
+
+const (
+        andOp logicalOp = "and"
+        orOp  logicalOp = "or"
+)
+
+func newLogicalOp(s string) (logicalOp, error) <span class="cov8" title="1">{
+        const op = "newLogicalOp"
+        switch logicalOp(s) </span>{
+        case
+                andOp,
+                orOp:<span class="cov8" title="1">
+                return logicalOp(s), nil</span>
+        default:<span class="cov8" title="1">
+                return "", fmt.Errorf("%s: %w %q", op, ErrInvalidLogicalOp, s)</span>
+        }
+}
+
+type logicalExpr struct {
+        leftExpr  expr
+        logicalOp logicalOp
+        rightExpr expr
+}
+
+// Type returns the expr type
+func (l *logicalExpr) Type() exprType <span class="cov8" title="1">{
+        return logicalExprType
+}</span>
+
+// String returns a string rep of the expr
+func (l *logicalExpr) String() string <span class="cov8" title="1">{
+        return fmt.Sprintf("(logicalExpr: %s %s %s)", l.leftExpr, l.logicalOp, l.rightExpr)
+}</span>
+
+// root will return the root of the expr tree
+func root(lExpr *logicalExpr, raw string) (expr, error) <span class="cov8" title="1">{
+        const op = "mql.root"
+        switch </span>{
+        // intentionally not checking raw, since can be an empty string
+        case lExpr == nil:<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: %w (missing expression)", op, ErrInvalidParameter)</span>
+        }
+        <span class="cov8" title="1">logicalOp := lExpr.logicalOp
+        if logicalOp != "" &amp;&amp; lExpr.rightExpr == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("%s: %w in: %q", op, ErrMissingRightSideExpr, raw)
+        }</span>
+
+        <span class="cov8" title="1">for lExpr.logicalOp == "" </span><span class="cov8" title="1">{
+                switch </span>{
+                case lExpr.leftExpr == nil:<span class="cov8" title="1">
+                        return nil, fmt.Errorf("%s: %w nil in: %q", op, ErrMissingExpr, raw)</span>
+                case lExpr.leftExpr.Type() == comparisonExprType:<span class="cov8" title="1">
+                        return lExpr.leftExpr, nil</span>
+                default:<span class="cov8" title="1">
+                        lExpr = lExpr.leftExpr.(*logicalExpr)</span>
+                }
+        }
+        <span class="cov8" title="1">return lExpr, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package mql
+
+import (
+        "bufio"
+        "bytes"
+        "fmt"
+        "strings"
+)
+
+type lexStateFunc func(*lexer) (lexStateFunc, error)
+
+type lexer struct {
+        source  *bufio.Reader
+        current stack[rune]
+        tokens  chan token
+        state   lexStateFunc
+}
+
+func newLexer(s string) *lexer <span class="cov8" title="1">{
+        l := &amp;lexer{
+                source: bufio.NewReader(strings.NewReader(s)),
+                state:  lexStartState,
+                tokens: make(chan token, 1), // define a ring buffer for emitted tokens
+        }
+        return l
+}</span>
+
+// nextToken is the external api for the lexer and it simply returns the next
+// token or an error. If EOF is encountered while scanning, nextToken will keep
+// returning an eofToken no matter how many times you call nextToken.
+func (l *lexer) nextToken() (token, error) <span class="cov8" title="1">{
+        for </span><span class="cov8" title="1">{
+                select </span>{
+                case tk := &lt;-l.tokens:<span class="cov8" title="1"> // return a token if one has been emitted
+                        return tk, nil</span>
+                default:<span class="cov8" title="1"> // otherwise, keep scanning via the next state
+                        var err error
+                        if l.state, err = l.state(l); err != nil </span><span class="cov8" title="1">{
+                                return token{}, err
+                        }</span>
+
+                }
+        }
+}
+
+// lexStartState  is the start state.  It doesn't emit tokens, but rather
+// transitions to other states.  Other states typically transition back to
+// lexStartState after they emit a token.
+func lexStartState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        panicIfNil(l, "lexStartState", "lexer")
+        r := l.read()
+        switch </span>{
+        // wait, if it's eof we're done
+        case r == eof:<span class="cov8" title="1">
+                l.emit(eofToken, "")
+                return lexEofState, nil</span>
+
+        // start with finding all tokens that can have a trailing "="
+        case r == '&gt;':<span class="cov8" title="1">
+                return lexGreaterState, nil</span>
+        case r == '&lt;':<span class="cov8" title="1">
+                return lexLesserState, nil</span>
+
+                // now, we can just look at the next rune...
+        case r == '%':<span class="cov8" title="1">
+                return lexContainsState, nil</span>
+        case r == '=':<span class="cov8" title="1">
+                return lexEqualState, nil</span>
+        case r == '!':<span class="cov8" title="1">
+                return lexNotEqualState, nil</span>
+        case r == ')':<span class="cov8" title="1">
+                return lexRightParenState, nil</span>
+        case r == '(':<span class="cov8" title="1">
+                return lexLeftParenState, nil</span>
+        case isSpace(r):<span class="cov8" title="1">
+                return lexWhitespaceState, nil</span>
+        default:<span class="cov8" title="1">
+                l.unread()
+                return lexStringState, nil</span>
+        }
+}
+
+// lexStringState scans for strings and can emit the following tokens:
+// orToken, andToken, containsToken, stringToken
+func lexStringState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        panicIfNil(l, "lexStringState", "lexer")
+        defer l.current.clear()
+
+        // we'll push the runes we read into this buffer and when appropriate will
+        // emit tokens using the buffer's data.
+        var buf bytes.Buffer
+
+        // before we start looping, let's found out if we're scanning a quoted string
+        r := l.read()
+        var quotedString bool
+        switch r </span>{
+        case '"':<span class="cov8" title="1">
+                quotedString = true</span>
+        default:<span class="cov8" title="1">
+                l.unread()</span>
+        }
+
+<span class="cov8" title="1">WriteToBuf:
+        // keep reading runes into the buffer until we encounter eof of non-text runes.
+        for </span><span class="cov8" title="1">{
+                r = l.read()
+                switch </span>{
+                case r == eof:<span class="cov8" title="1">
+                        break WriteToBuf</span>
+                case r == '"' &amp;&amp; quotedString:<span class="cov8" title="1"> // end of the quoted string we're scanning
+                        break WriteToBuf</span>
+                case (isSpace(r) || isSpecial(r)) &amp;&amp; !quotedString:<span class="cov8" title="1"> // whitespace or a special char, and we're not scanning a quoted string
+                        l.unread()
+                        break WriteToBuf</span>
+                default:<span class="cov8" title="1"> // otherwise, write the rune into the keyword buffer
+                        buf.WriteRune(r)</span>
+                }
+        }
+
+        // before emitting a token, do we have a special string?  But, first let's
+        // check if we're dealing with a quoted string, since we want to support
+        // emitting string tokens for "and", "or" so those tokens can be used in
+        // comparison expr. Example: name % "Johnson and"
+        <span class="cov8" title="1">if !quotedString </span><span class="cov8" title="1">{
+                switch strings.ToLower(buf.String()) </span>{
+                case "and":<span class="cov8" title="1">
+                        l.emit(andToken, "and")
+                        return lexStartState, nil</span>
+                case "or":<span class="cov8" title="1">
+                        l.emit(orToken, "or")
+                        return lexStartState, nil</span>
+                }
+        }
+
+        <span class="cov8" title="1">l.emit(stringToken, buf.String())
+        return lexStartState, nil</span>
+}
+
+// lexContainsState emits an containsToken and returns to the lexStartState
+func lexContainsState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        panicIfNil(l, "lexContainsState", "lexer")
+        defer l.current.clear()
+        l.emit(containsToken, "%")
+        return lexStartState, nil
+}</span>
+
+// lexEqualState emits an equalToken and returns to the lexStartState
+func lexEqualState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        panicIfNil(l, "lexEqualState", "lexer")
+        defer l.current.clear()
+        l.emit(equalToken, "=")
+        return lexStartState, nil
+}</span>
+
+// lexNotEqualState scans for a notEqualToken and return either to the lexStartState or
+// lexErrorState
+func lexNotEqualState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        const op = "mql.lexNotEqualState"
+        panicIfNil(l, "lexNotEqualState", "lexer")
+        defer l.current.clear()
+        nextRune := l.read()
+        switch nextRune </span>{
+        case '=':<span class="cov8" title="1">
+                l.emit(notEqualToken, "!=")
+                return lexStartState, nil</span>
+        default:<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: %w, got %q", op, ErrInvalidNotEqual, fmt.Sprintf("%s%s", "!", string(nextRune)))</span>
+        }
+}
+
+// lexLeftParenState emits a startLogicalExprToken and returns to the
+// lexStartState
+func lexLeftParenState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        panicIfNil(l, "lexLeftParenState", "lexer")
+        defer l.current.clear()
+        l.emit(startLogicalExprToken, runesToString(l.current))
+        return lexStartState, nil
+}</span>
+
+// lexRightParenState emits an endLogicalExprToken and returns to the
+// lexStartState
+func lexRightParenState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        panicIfNil(l, "lexRightParenState", "lexer")
+        defer l.current.clear()
+        l.emit(endLogicalExprToken, runesToString(l.current))
+        return lexStartState, nil
+}</span>
+
+// lexWhitespaceState emits a whitespaceToken and returns to the lexStartState
+func lexWhitespaceState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        panicIfNil(l, "lexWhitespaceState", "lexer")
+        defer l.current.clear()
+ReadWhitespace:
+        for </span><span class="cov8" title="1">{
+                ch := l.read()
+                switch </span>{
+                case ch == eof:<span class="cov8" title="1">
+                        break ReadWhitespace</span>
+                case !isSpace(ch):<span class="cov8" title="1">
+                        l.unread()
+                        break ReadWhitespace</span>
+                }
+        }
+        <span class="cov8" title="1">l.emit(whitespaceToken, "")
+        return lexStartState, nil</span>
+}
+
+// lexGreaterState will emit either a greaterThanToken or a
+// greaterThanOrEqualToken and return to the lexStartState
+func lexGreaterState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        panicIfNil(l, "lexGreaterState", "lexer")
+        defer l.current.clear()
+        next := l.read()
+        switch next </span>{
+        case '=':<span class="cov8" title="1">
+                l.emit(greaterThanOrEqualToken, "&gt;=")
+                return lexStartState, nil</span>
+        default:<span class="cov8" title="1">
+                l.unread()
+                l.emit(greaterThanToken, "&gt;")
+                return lexStartState, nil</span>
+        }
+}
+
+// lexLesserState will emit either a lessThanToken or a lessThanOrEqualToken and
+// return to the lexStartState
+func lexLesserState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        panicIfNil(l, "lexLesserState", "lexer")
+        defer l.current.clear()
+        next := l.read()
+        switch next </span>{
+        case '=':<span class="cov8" title="1">
+                l.emit(lessThanOrEqualToken, "&lt;=")
+                return lexStartState, nil</span>
+        default:<span class="cov8" title="1">
+                l.unread()
+                l.emit(lessThanToken, "&lt;")
+                return lexStartState, nil</span>
+        }
+}
+
+// lexEofState will emit an eofToken and returns right back to the lexEofState
+func lexEofState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        panicIfNil(l, "lexEofState", "lexer")
+        l.emit(eofToken, "")
+        return lexEofState, nil
+}</span>
+
+// emit send a token to the lexer's token channel
+func (l *lexer) emit(t tokenType, v string) <span class="cov8" title="1">{
+        l.tokens &lt;- token{
+                Type:  t,
+                Value: v,
+        }
+}</span>
+
+// isSpace reports if r is a space
+func isSpace(r rune) bool <span class="cov8" title="1">{
+        return r == ' ' || r == '\t' || r == '\r' || r == '\n'
+}</span>
+
+// isSpecial reports r is special rune
+func isSpecial(r rune) bool <span class="cov8" title="1">{
+        return r == '=' || r == '&gt;' || r == '!' || r == '&lt;' || r == '(' || r == ')' || r == '%'
+}</span>
+
+// read the next rune
+func (l *lexer) read() rune <span class="cov8" title="1">{
+        ch, _, err := l.source.ReadRune()
+        if err != nil </span><span class="cov8" title="1">{
+                return eof
+        }</span>
+        <span class="cov8" title="1">l.current.push(ch)
+        return ch</span>
+}
+
+// unread the last rune read which means that rune will be returned the next
+// time lexer.read() is called.  unread also removes the last rune from the
+// lexer's stack of current runes
+func (l *lexer) unread() <span class="cov8" title="1">{
+        _ = l.source.UnreadRune() // error ignore which only occurs when nothing has been previously read
+        _, _ = l.current.pop()
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package mql
+
+import (
+        "fmt"
+        "reflect"
+        "strings"
+)
+
+// WhereClause contains a SQL where clause condition and its arguments.
+type WhereClause struct {
+        // Condition is the where clause condition
+        Condition string
+        // Args for the where clause condition
+        Args []any
+}
+
+// Parse will parse the query and use the provided database model to create a
+// where clause. Supported options: WithColumnMap, WithIgnoreFields,
+// WithConverter, WithPgPlaceholder
+func Parse(query string, model any, opt ...Option) (*WhereClause, error) <span class="cov8" title="1">{
+        const op = "mql.Parse"
+        switch </span>{
+        case query == "":<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: missing query: %w", op, ErrInvalidParameter)</span>
+        case isNil(model):<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: missing model: %w", op, ErrInvalidParameter)</span>
+        }
+        <span class="cov8" title="1">p := newParser(query)
+        expr, err := p.parse()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("%s: %w", op, err)
+        }</span>
+        <span class="cov8" title="1">fValidators, err := fieldValidators(reflect.ValueOf(model), opt...)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("%s: %w", op, err)
+        }</span>
+        <span class="cov8" title="1">e, err := exprToWhereClause(expr, fValidators, opt...)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("%s: %w", op, err)
+        }</span>
+        <span class="cov8" title="1">opts, err := getOpts(opt...)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("%s: %w", op, err)
+        }</span>
+        <span class="cov8" title="1">if opts.withPgPlaceholder </span><span class="cov8" title="1">{
+                for i := 0; i &lt; len(e.Args); i++ </span><span class="cov8" title="1">{
+                        placeholder := fmt.Sprintf("$%d", i+1)
+                        e.Condition = strings.Replace(e.Condition, "?", placeholder, 1)
+                }</span>
+        }
+        <span class="cov8" title="1">return e, nil</span>
+}
+
+// exprToWhereClause generates the where clause condition along with its
+// required arguments. Supported options: WithColumnMap, WithConverter
+func exprToWhereClause(e expr, fValidators map[string]validator, opt ...Option) (*WhereClause, error) <span class="cov8" title="1">{
+        const op = "mql.exprToWhereClause"
+        switch </span>{
+        case isNil(e):<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: missing expression: %w", op, ErrInvalidParameter)</span>
+        case isNil(fValidators):<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: missing validators: %w", op, ErrInvalidParameter)</span>
+        }
+
+        <span class="cov8" title="1">switch v := e.(type) </span>{
+        case *comparisonExpr:<span class="cov8" title="1">
+                opts, err := getOpts(opt...)
+                if err != nil </span><span class="cov8" title="1">{
+                        return nil, fmt.Errorf("%s: %w", op, err)
+                }</span>
+                <span class="cov8" title="1">switch </span>{
+                case opts.withValidateConvertColumn == v.column &amp;&amp; !isNil(opts.withValidateConvertFn):<span class="cov8" title="1">
+                        return opts.withValidateConvertFn(v.column, v.comparisonOp, v.value)</span>
+                default:<span class="cov8" title="1">
+                        columnName := strings.ToLower(v.column)
+                        if n, ok := opts.withColumnMap[columnName]; ok </span><span class="cov8" title="1">{
+                                columnName = n
+                        }</span>
+                        <span class="cov8" title="1">validator, ok := fValidators[strings.ToLower(strings.ReplaceAll(columnName, "_", ""))]
+                        if !ok </span><span class="cov8" title="1">{
+                                cols := make([]string, len(fValidators))
+                                for c := range fValidators </span><span class="cov8" title="1">{
+                                        cols = append(cols, c)
+                                }</span>
+                                <span class="cov8" title="1">return nil, fmt.Errorf("%s: %w %q %s", op, ErrInvalidColumn, columnName, cols)</span>
+                        }
+                        <span class="cov8" title="1">w, err := defaultValidateConvert(columnName, v.comparisonOp, v.value, validator, opt...)
+                        if err != nil </span><span class="cov8" title="1">{
+                                return nil, fmt.Errorf("%s: %w", op, err)
+                        }</span>
+                        <span class="cov8" title="1">return w, nil</span>
+                }
+        case *logicalExpr:<span class="cov8" title="1">
+                left, err := exprToWhereClause(v.leftExpr, fValidators, opt...)
+                if err != nil </span><span class="cov8" title="1">{
+                        return nil, fmt.Errorf("%s: invalid left expr: %w", op, err)
+                }</span>
+                <span class="cov8" title="1">if v.logicalOp == "" </span><span class="cov8" title="1">{
+                        return nil, fmt.Errorf("%s: %w that stated with left expr condition: %q args: %q", op, ErrMissingLogicalOp, left.Condition, left.Args)
+                }</span>
+                <span class="cov8" title="1">right, err := exprToWhereClause(v.rightExpr, fValidators, opt...)
+                if err != nil </span><span class="cov8" title="1">{
+                        return nil, fmt.Errorf("%s: invalid right expr: %w", op, err)
+                }</span>
+                <span class="cov8" title="1">return &amp;WhereClause{
+                        Condition: fmt.Sprintf("(%s %s %s)", left.Condition, v.logicalOp, right.Condition),
+                        Args:      append(left.Args, right.Args...),
+                }, nil</span>
+        default:<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: unexpected expr type %T: %w", op, v, ErrInternal)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package mql
+
+import (
+        "fmt"
+)
+
+type options struct {
+        withSkipWhitespace        bool
+        withColumnMap             map[string]string
+        withValidateConvertFn     ValidateConvertFunc
+        withValidateConvertColumn string
+        withIgnoredFields         []string
+        withPgPlaceholder         bool
+}
+
+// Option - how options are passed as args
+type Option func(*options) error
+
+func getDefaultOptions() options <span class="cov8" title="1">{
+        return options{
+                withColumnMap: make(map[string]string),
+        }
+}</span>
+
+func getOpts(opt ...Option) (options, error) <span class="cov8" title="1">{
+        opts := getDefaultOptions()
+
+        for _, o := range opt </span><span class="cov8" title="1">{
+                if err := o(&amp;opts); err != nil </span><span class="cov8" title="1">{
+                        return opts, err
+                }</span>
+        }
+        <span class="cov8" title="1">return opts, nil</span>
+}
+
+// withSkipWhitespace provides an option to request that whitespace be skipped
+func withSkipWhitespace() Option <span class="cov8" title="1">{
+        return func(o *options) error </span><span class="cov8" title="1">{
+                o.withSkipWhitespace = true
+                return nil
+        }</span>
+}
+
+// WithColumnMap provides an optional map of columns from a column in the user
+// provided query to a column in the database model
+func WithColumnMap(m map[string]string) Option <span class="cov8" title="1">{
+        return func(o *options) error </span><span class="cov8" title="1">{
+                if !isNil(m) </span><span class="cov8" title="1">{
+                        o.withColumnMap = m
+                }</span>
+                <span class="cov8" title="1">return nil</span>
+        }
+}
+
+// ValidateConvertFunc validates the value and then converts the columnName,
+// comparisonOp and value to a WhereClause
+type ValidateConvertFunc func(columnName string, comparisonOp ComparisonOp, value *string) (*WhereClause, error)
+
+// WithConverter provides an optional ConvertFunc for a column identifier in the
+// query. This allows you to provide whatever custom validation+conversion you
+// need on a per column basis.  See: DefaultValidateConvert(...) for inspiration.
+func WithConverter(fieldName string, fn ValidateConvertFunc) Option <span class="cov8" title="1">{
+        const op = "mql.WithSqlConverter"
+        return func(o *options) error </span><span class="cov8" title="1">{
+                switch </span>{
+                case fieldName != "" &amp;&amp; !isNil(fn):<span class="cov8" title="1">
+                        o.withValidateConvertFn = fn
+                        o.withValidateConvertColumn = fieldName</span>
+                case fieldName == "" &amp;&amp; !isNil(fn):<span class="cov8" title="1">
+                        return fmt.Errorf("%s: missing field name: %w", op, ErrInvalidParameter)</span>
+                case fieldName != "" &amp;&amp; isNil(fn):<span class="cov8" title="1">
+                        return fmt.Errorf("%s: missing ConvertToSqlFunc: %w", op, ErrInvalidParameter)</span>
+                }
+                <span class="cov8" title="1">return nil</span>
+        }
+}
+
+// WithIgnoredFields provides an optional list of fields to ignore in the model
+// (your Go struct) when parsing. Note: Field names are case sensitive.
+func WithIgnoredFields(fieldName ...string) Option <span class="cov8" title="1">{
+        return func(o *options) error </span><span class="cov8" title="1">{
+                if len(fieldName) &gt; 0 </span><span class="cov8" title="1">{
+                        o.withIgnoredFields = make([]string, len(fieldName))
+                        for _, name := range fieldName </span><span class="cov8" title="1">{
+                                o.withIgnoredFields = append(o.withIgnoredFields, name)
+                        }</span>
+                        <span class="cov8" title="1">o.withIgnoredFields = fieldName</span>
+                }
+                <span class="cov8" title="1">return nil</span>
+        }
+}
+
+// WithPgPlaceholders will use parameters placeholders that are compatible with
+// the postgres pg driver which requires a placeholder like $1 instead of ?.
+// See:
+//   - https://pkg.go.dev/github.com/jackc/pgx/v5
+//   - https://pkg.go.dev/github.com/lib/pq
+func WithPgPlaceholders() Option <span class="cov8" title="1">{
+        return func(o *options) error </span><span class="cov8" title="1">{
+                o.withPgPlaceholder = true
+                return nil
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package mql
+
+import (
+        "fmt"
+)
+
+type parser struct {
+        l               *lexer
+        raw             string
+        currentToken    token
+        openLogicalExpr stack[struct{}] // something very simple to make sure every logical expr that's opened is closed.
+}
+
+func newParser(s string) *parser <span class="cov8" title="1">{
+        return &amp;parser{
+                l:   newLexer(s),
+                raw: s,
+        }
+}</span>
+
+func (p *parser) parse() (expr, error) <span class="cov8" title="1">{
+        const op = "mql.(parser).parse"
+        lExpr, err := p.parseLogicalExpr()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("%s: %w", op, err)
+        }</span>
+        <span class="cov8" title="1">r, err := root(lExpr, p.raw)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("%s: %w", op, err)
+        }</span>
+        <span class="cov8" title="1">return r, nil</span>
+}
+
+// parseLogicalExpr will parse a logicalExpr until an eofToken is reached, which
+// may require it to parse a comparisonExpr and/or recursively parse
+// logicalExprs
+func (p *parser) parseLogicalExpr() (*logicalExpr, error) <span class="cov8" title="1">{
+        const op = "parseLogicalExpr"
+        logicExpr := &amp;logicalExpr{}
+
+        if err := p.scan(withSkipWhitespace()); err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("%s: %w", op, err)
+        }</span>
+<span class="cov8" title="1">TkLoop:
+        for p.currentToken.Type != eofToken </span><span class="cov8" title="1">{
+                switch p.currentToken.Type </span>{
+                case startLogicalExprToken:<span class="cov8" title="1"> // there's a opening paren: (
+                        // so we've found a new logical expr to parse
+                        e, err := p.parseLogicalExpr()
+                        if err != nil </span><span class="cov8" title="1">{
+                                return nil, fmt.Errorf("%s: %w", op, err)
+                        }</span>
+                        <span class="cov8" title="1">switch </span>{
+                        // start by assigning the left expr
+                        case logicExpr.leftExpr == nil:<span class="cov8" title="1">
+                                logicExpr.leftExpr = e
+                                break TkLoop</span>
+                        // we should have a logical operator before the right side expr is assigned
+                        case logicExpr.logicalOp == "":<span class="cov8" title="1">
+                                return nil, fmt.Errorf("%s: %w before right side expression in: %q", op, ErrMissingLogicalOp, p.raw)</span>
+                        // finally, assign the right expr
+                        case logicExpr.rightExpr == nil:<span class="cov8" title="1">
+                                logicExpr.rightExpr = e.leftExpr
+                                break TkLoop</span>
+                        }
+                case stringToken:<span class="cov8" title="1">
+                        if (logicExpr.leftExpr != nil &amp;&amp; logicExpr.logicalOp == "") ||
+                                (logicExpr.leftExpr != nil &amp;&amp; logicExpr.rightExpr != nil) </span><span class="cov8" title="1">{
+                                return nil, fmt.Errorf("%s: %w starting at %q in: %q", op, ErrUnexpectedExpr, p.currentToken.Value, p.raw)
+                        }</span>
+                        <span class="cov8" title="1">cmpExpr, err := p.parseComparisonExpr()
+                        if err != nil </span><span class="cov8" title="1">{
+                                return nil, fmt.Errorf("%s: %w", op, err)
+                        }</span>
+                        <span class="cov8" title="1">switch </span>{
+                        case logicExpr.leftExpr == nil:<span class="cov8" title="1">
+                                logicExpr.leftExpr = cmpExpr</span>
+                        case logicExpr.rightExpr == nil:<span class="cov8" title="1">
+                                logicExpr.rightExpr = cmpExpr
+                                tmpExpr := &amp;logicalExpr{
+                                        leftExpr:  logicExpr,
+                                        logicalOp: "",
+                                        rightExpr: nil,
+                                }
+                                logicExpr = tmpExpr</span>
+                        default:<span class="cov0" title="0">
+                                return nil, fmt.Errorf("%s: %w at %q, but both left and right expressions already exist in: %q", op, ErrUnexpectedExpr, p.currentToken.Value, p.raw)</span>
+                        }
+                case endLogicalExprToken:<span class="cov8" title="1">
+                        if logicExpr.leftExpr == nil </span><span class="cov8" title="1">{
+                                return nil, fmt.Errorf("%s: %w %q but we haven't parsed a left side expression in: %q", op, ErrUnexpectedClosingParen, p.currentToken.Value, p.raw)
+                        }</span>
+                        <span class="cov0" title="0">return logicExpr, nil</span>
+                case andToken, orToken:<span class="cov8" title="1">
+                        if logicExpr.logicalOp != "" </span><span class="cov8" title="1">{
+                                return nil, fmt.Errorf("%s: %w %q when we've already parsed one for expr in: %q", op, ErrUnexpectedLogicalOp, p.currentToken.Value, p.raw)
+                        }</span>
+                        <span class="cov8" title="1">o, err := newLogicalOp(p.currentToken.Value)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return nil, fmt.Errorf("%s: %w", op, err)
+                        }</span>
+                        <span class="cov8" title="1">logicExpr.logicalOp = o</span>
+                default:<span class="cov8" title="1">
+                        return nil, fmt.Errorf("%s: %w %q in: %q", op, ErrUnexpectedToken, p.currentToken.Value, p.raw)</span>
+                }
+                <span class="cov8" title="1">if err := p.scan(withSkipWhitespace()); err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("%s: %w", op, err)
+                }</span>
+        }
+        <span class="cov8" title="1">if p.openLogicalExpr.len() &gt; 0 </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("%s: %w in: %q", op, ErrMissingClosingParen, p.raw)
+        }</span>
+        <span class="cov8" title="1">return logicExpr, nil</span>
+}
+
+// parseComparisonExpr will parse a comparisonExpr until an eofToken is reached,
+// which may require it to parse logicalExpr
+func (p *parser) parseComparisonExpr() (expr, error) <span class="cov8" title="1">{
+        const op = "mql.(parser).parseComparisonExpr"
+        cmpExpr := &amp;comparisonExpr{}
+
+        // our language (and this parser) def requires the tokens to be in the
+        // correct order: column, comparisonOp, value. Swapping this order where the
+        // value comes first (value, comparisonOp, column) is not supported
+        for p.currentToken.Type != eofToken </span><span class="cov8" title="1">{
+                switch </span>{
+                case p.currentToken.Type == startLogicalExprToken:<span class="cov8" title="1">
+                        switch </span>{
+                        case cmpExpr.isComplete():<span class="cov8" title="1">
+                                return nil, fmt.Errorf("%s: %w after %s in: %q", op, ErrUnexpectedOpeningParen, cmpExpr, p.raw)</span>
+                        default:<span class="cov8" title="1">
+                                return nil, fmt.Errorf("%s: %w in: %q", op, ErrUnexpectedOpeningParen, p.raw)</span>
+                        }
+
+                        // we already have a complete comparisonExpr
+                case cmpExpr.isComplete() &amp;&amp;
+                        (p.currentToken.Type != whitespaceToken &amp;&amp; p.currentToken.Type != endLogicalExprToken):<span class="cov8" title="1">
+                        return nil, fmt.Errorf("%s: %w %s:%q in: %s", op, ErrUnexpectedToken, p.currentToken.Type, p.currentToken.Value, p.raw)</span>
+
+                // we found whitespace, so check if there's a completed logical expr to return
+                case p.currentToken.Type == whitespaceToken:<span class="cov8" title="1">
+                        if cmpExpr.column != "" &amp;&amp; cmpExpr.comparisonOp != "" &amp;&amp; cmpExpr.value != nil </span><span class="cov8" title="1">{
+                                return cmpExpr, nil
+                        }</span>
+
+                // columns must come first, so handle those conditions
+                case cmpExpr.column == "" &amp;&amp; p.currentToken.Type != stringToken:<span class="cov0" title="0">
+                        // this should be unreachable because parseComparisonExpr(...) is
+                        // called when a stringToken is the current token, but I've kept
+                        // this case here for completeness
+                        return nil, fmt.Errorf("%s: %w: we expected a stringToken and got %s in: %q", op, ErrUnexpectedToken, p.currentToken.Value, p.raw)</span>
+                case cmpExpr.column == "":<span class="cov8" title="1"> // has to be stringToken representing the column
+                        cmpExpr.column = p.currentToken.Value</span>
+
+                // after columns, comparison operators must come next
+                case cmpExpr.comparisonOp == "":<span class="cov8" title="1">
+                        c, err := newComparisonOp(p.currentToken.Value)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return nil, fmt.Errorf("%s: %w %q in: %q", op, err, p.currentToken.Value, p.raw)
+                        }</span>
+                        <span class="cov8" title="1">cmpExpr.comparisonOp = c</span>
+
+                // finally, values must come at the end
+                case cmpExpr.value == nil &amp;&amp; p.currentToken.Type != stringToken:<span class="cov8" title="1">
+                        return nil, fmt.Errorf("%s: %w %q in: %q", op, ErrUnexpectedToken, p.currentToken.Value, p.raw)</span>
+                case cmpExpr.value == nil:<span class="cov8" title="1">
+                        s := p.currentToken.Value
+                        cmpExpr.value = &amp;s</span>
+                }
+                <span class="cov8" title="1">if err := p.scan(); err != nil </span><span class="cov8" title="1">{
+                        return nil, fmt.Errorf("%s: %w", op, err)
+                }</span>
+        }
+
+        <span class="cov8" title="1">switch </span>{
+        case cmpExpr.column != "" &amp;&amp; cmpExpr.comparisonOp == "":<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: %w in: %q", op, ErrMissingComparisonOp, p.raw)</span>
+        default:<span class="cov8" title="1">
+                return cmpExpr, nil</span>
+        }
+}
+
+// scan will get the next token from the lexer. Supported options:
+// withSkipWhitespace
+func (p *parser) scan(opt ...Option) error <span class="cov8" title="1">{
+        const op = "mql.(parser).scan"
+
+        opts, err := getOpts(opt...)
+        if err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("%s: %w", op, err)
+        }</span>
+
+        <span class="cov8" title="1">if p.currentToken, err = p.l.nextToken(); err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("%s: %w", op, err)
+        }</span>
+
+        <span class="cov8" title="1">if opts.withSkipWhitespace </span><span class="cov8" title="1">{
+                for p.currentToken.Type == whitespaceToken </span><span class="cov8" title="1">{
+                        if p.currentToken, err = p.l.nextToken(); err != nil </span><span class="cov8" title="1">{
+                                return fmt.Errorf("%s: %w", op, err)
+                        }</span>
+                }
+        }
+
+        <span class="cov8" title="1">switch p.currentToken.Type </span>{
+        case startLogicalExprToken:<span class="cov8" title="1">
+                p.openLogicalExpr.push(struct{}{})</span>
+        case endLogicalExprToken:<span class="cov8" title="1">
+                p.openLogicalExpr.pop()</span>
+        }
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package mql
+
+type stack[T any] struct {
+        data []T
+}
+
+func (s *stack[T]) push(v T) <span class="cov8" title="1">{
+        s.data = append(s.data, v)
+}</span>
+
+func (s *stack[T]) pop() (T, bool) <span class="cov8" title="1">{
+        var x T
+        if len(s.data) &gt; 0 </span><span class="cov8" title="1">{
+                x, s.data = s.data[len(s.data)-1], s.data[:len(s.data)-1]
+                return x, true
+        }</span>
+        <span class="cov8" title="1">return x, false</span>
+}
+
+func (s *stack[T]) clear() <span class="cov8" title="1">{
+        s.data = nil
+}</span>
+
+func (s *stack[T]) len() int <span class="cov8" title="1">{
+        return len(s.data)
+}</span>
+
+func runesToString(s stack[rune]) string <span class="cov8" title="1">{
+        var result string
+        for i := 0; i &lt; len(s.data); i++ </span><span class="cov8" title="1">{
+                result = string(s.data[i]) + result
+        }</span>
+        <span class="cov8" title="1">return result</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package mql
+
+type token struct {
+        Type  tokenType
+        Value string
+}
+
+type tokenType int
+
+const eof rune = -1
+
+const (
+        unknownToken tokenType = iota
+        eofToken
+        whitespaceToken
+        stringToken
+        startLogicalExprToken
+        endLogicalExprToken
+        greaterThanToken
+        greaterThanOrEqualToken
+        lessThanToken
+        lessThanOrEqualToken
+        equalToken
+        notEqualToken
+        containsToken
+
+        // keywords
+        andToken
+        orToken
+)
+
+var tokenTypeToString = map[tokenType]string{
+        unknownToken:            "unknown",
+        eofToken:                "eof",
+        whitespaceToken:         "ws",
+        stringToken:             "str",
+        startLogicalExprToken:   "lparen",
+        endLogicalExprToken:     "rparen",
+        greaterThanToken:        "gt",
+        greaterThanOrEqualToken: "gte",
+        lessThanToken:           "lt",
+        lessThanOrEqualToken:    "lte",
+        equalToken:              "eq",
+        notEqualToken:           "neq",
+        containsToken:           "contains",
+        andToken:                "and",
+        orToken:                 "or",
+}
+
+// String returns a string of the tokenType and will return "Unknown" for
+// invalid tokenTypes
+func (t tokenType) String() string <span class="cov8" title="1">{
+        s, ok := tokenTypeToString[t]
+        switch ok </span>{
+        case true:<span class="cov8" title="1">
+                return s</span>
+        default:<span class="cov8" title="1">
+                return tokenTypeToString[unknownToken]</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package mql
+
+import (
+        "fmt"
+        "reflect"
+        "strconv"
+        "strings"
+
+        "golang.org/x/exp/slices"
+)
+
+type validator struct {
+        fn  validateFunc
+        typ string
+}
+
+// validateFunc is used to validate a column value by converting it as needed,
+// validating the value, and returning the converted value
+type validateFunc func(columnValue string) (columnVal any, err error)
+
+// fieldValidators takes a model and returns a map of field names to validate
+// functions.  Supported options: WithIgnoreFields
+func fieldValidators(model reflect.Value, opt ...Option) (map[string]validator, error) <span class="cov8" title="1">{
+        const op = "mql.fieldValidators"
+        switch </span>{
+        case !model.IsValid():<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: missing model: %w", op, ErrInvalidParameter)</span>
+        case (model.Kind() != reflect.Struct &amp;&amp; model.Kind() != reflect.Pointer),
+                model.Kind() == reflect.Pointer &amp;&amp; model.Elem().Kind() != reflect.Struct:<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: model must be a struct or a pointer to a struct: %w", op, ErrInvalidParameter)</span>
+        }
+        <span class="cov8" title="1">var m reflect.Value = model
+        if m.Kind() != reflect.Struct </span><span class="cov8" title="1">{
+                m = model.Elem()
+        }</span>
+
+        <span class="cov8" title="1">opts, err := getOpts(opt...)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("%s: %w", op, err)
+        }</span>
+
+        <span class="cov8" title="1">fValidators := make(map[string]validator)
+        for i := 0; i &lt; m.NumField(); i++ </span><span class="cov8" title="1">{
+                if slices.Contains(opts.withIgnoredFields, m.Type().Field(i).Name) </span><span class="cov8" title="1">{
+                        continue</span>
+                }
+
+                <span class="cov8" title="1">fName := strings.ToLower(m.Type().Field(i).Name)
+                // get a string val of the field type, then strip any leading '*' so we
+                // can simplify the switch below when dealing with types like *int and int.
+                fType := strings.TrimPrefix(m.Type().Field(i).Type.String(), "*")
+                switch fType </span>{
+                case "float32", "float64":<span class="cov8" title="1">
+                        fValidators[fName] = validator{fn: validateFloat, typ: "float"}</span>
+                case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":<span class="cov8" title="1">
+                        fValidators[fName] = validator{fn: validateInt, typ: "int"}</span>
+                case "time.Time":<span class="cov8" title="1">
+                        fValidators[fName] = validator{fn: validateDefault, typ: "time"}</span>
+                default:<span class="cov8" title="1">
+                        fValidators[fName] = validator{fn: validateDefault, typ: "default"}</span>
+                }
+        }
+        <span class="cov8" title="1">return fValidators, nil</span>
+}
+
+// by default, we'll use a no op validation
+func validateDefault(s string) (any, error) <span class="cov8" title="1">{
+        return s, nil
+}</span>
+
+func validateInt(s string) (any, error) <span class="cov8" title="1">{
+        const op = "mql.validateInt"
+        i, err := strconv.Atoi(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, fmt.Errorf("%s: value %q is not an int: %w", op, s, ErrInvalidParameter)
+        }</span>
+        <span class="cov8" title="1">return i, nil</span>
+}
+
+func validateFloat(s string) (any, error) <span class="cov8" title="1">{
+        const op = "mql.validateFloat"
+        f, err := strconv.ParseFloat(s, 64)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("%s: value %q is not float: %w", op, s, ErrInvalidParameter)
+        }</span>
+        <span class="cov8" title="1">return f, nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
