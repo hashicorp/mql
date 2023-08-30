@@ -54,7 +54,7 @@
 //
 // More complex queries can be created using parentheses.
 //
-// See [GRAMMAR.md]: https://github.com/hashicorp/mql/blob/main/GRAMMER.md for a more complete documentation of mql's grammar.
+// See [GRAMMAR.md]: https://github.com/hashicorp/mql/blob/main/GRAMMAR.md for a more complete documentation of mql's grammar.
 //
 // Example query:
 //

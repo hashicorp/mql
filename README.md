@@ -64,7 +64,7 @@ Comparisons can be combined using: `and`, `or`.
 
 More complex queries can be created using parentheses.
 
-See [GRAMMAR.md](./GRAMMER.md) for a more complete documentation of [mql](https://pkg.go.dev/github.com/hashicorp/mql)'s grammar.
+See [GRAMMAR.md](./GRAMMAR.md) for a more complete documentation of [mql](https://pkg.go.dev/github.com/hashicorp/mql)'s grammar.
 
 Example query:
 
@@ -195,7 +195,7 @@ if err != nil {
 
 ### Grammar
 
-See: [GRAMMAR.md](./GRAMMER.md)
+See: [GRAMMAR.md](./GRAMMAR.md)
 
 ## Security
 
