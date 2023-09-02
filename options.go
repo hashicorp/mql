@@ -82,13 +82,7 @@ func WithConverter(fieldName string, fn ValidateConvertFunc) Option {
 // (your Go struct) when parsing. Note: Field names are case sensitive.
 func WithIgnoredFields(fieldName ...string) Option {
 	return func(o *options) error {
-		if len(fieldName) > 0 {
-			o.withIgnoredFields = make([]string, len(fieldName))
-			for _, name := range fieldName {
-				o.withIgnoredFields = append(o.withIgnoredFields, name)
-			}
-			o.withIgnoredFields = fieldName
-		}
+		o.withIgnoredFields = fieldName
 		return nil
 	}
 }
