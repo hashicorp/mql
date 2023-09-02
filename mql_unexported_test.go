@@ -154,9 +154,9 @@ func Test_fieldValidators(t *testing.T) {
 
 type invalidExpr struct{}
 
-func (_ *invalidExpr) Type() exprType {
+func (*invalidExpr) Type() exprType {
 	return unknownExprType
 }
-func (_ *invalidExpr) String() string {
+func (*invalidExpr) String() string {
 	return "unknown"
 }
