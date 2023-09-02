@@ -161,6 +161,7 @@ func Test_lexKeywordState(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			assert, require := assert.New(t), require.New(t)
 
@@ -220,6 +221,7 @@ func Test_lexWhitespaceState(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert, require := assert.New(t), require.New(t)

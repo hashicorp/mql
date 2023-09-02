@@ -58,8 +58,8 @@ func Test_postgres(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
-		testName := tc.name
-		t.Run(testName, func(t *testing.T) {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
 			assert, require := assert.New(t), require.New(t)
 			where, err := mql.Parse(tc.query, user{}, tc.opts...)
 			if tc.wantErrContains != "" {

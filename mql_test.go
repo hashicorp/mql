@@ -201,6 +201,7 @@ func TestParse(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			assert, require := assert.New(t), require.New(t)
 			whereClause, err := mql.Parse(tc.query, tc.model, tc.opts...)
