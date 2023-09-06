@@ -8,6 +8,6 @@ project {
   
     header_ignore = [
     ".github/**",
-    "internal/coverage/**"
+    "coverage/**"
   ]
 }
