@@ -44,7 +44,7 @@ func Test_lexKeywordState(t *testing.T) {
 			raw:  `(age=1.21)`,
 			want: []token{
 				{Type: startLogicalExprToken, Value: "("},
-				{Type: stringToken, Value: "age"},
+				{Type: symbolToken, Value: "age"},
 				{Type: equalToken, Value: "="},
 				{Type: numberToken, Value: "1.21"},
 				{Type: endLogicalExprToken, Value: ")"},
@@ -62,7 +62,7 @@ func Test_lexKeywordState(t *testing.T) {
 			name: "empty-quotes",
 			raw:  `name=""`,
 			want: []token{
-				{Type: stringToken, Value: "name"},
+				{Type: symbolToken, Value: "name"},
 				{Type: equalToken, Value: "="},
 				{Type: stringToken, Value: ""},
 				{Type: eofToken, Value: ""},
@@ -77,10 +77,25 @@ func Test_lexKeywordState(t *testing.T) {
 			},
 		},
 		{
+			name:            "missing-delimiter",
+			raw:             `"value`,
+			wantErrContains: `missing end of stringToken delimiter for "value`,
+		},
+		{
 			name: "non-quoted-value",
 			raw:  "non-quoted-value",
 			want: []token{
-				{Type: stringToken, Value: "non-quoted-value"},
+				{Type: symbolToken, Value: "non-quoted-value"},
+				{Type: eofToken, Value: ""},
+			},
+		},
+		{
+			name: "comparison-op-in-keyword",
+			raw:  "greater>\"than\"",
+			want: []token{
+				{Type: symbolToken, Value: "greater"},
+				{Type: greaterThanToken, Value: ">"},
+				{Type: stringToken, Value: "than"},
 				{Type: eofToken, Value: ""},
 			},
 		},
@@ -88,9 +103,9 @@ func Test_lexKeywordState(t *testing.T) {
 			name: "comparison-op-in-keyword",
 			raw:  "greater>than",
 			want: []token{
-				{Type: stringToken, Value: "greater"},
+				{Type: symbolToken, Value: "greater"},
 				{Type: greaterThanToken, Value: ">"},
-				{Type: stringToken, Value: "than"},
+				{Type: symbolToken, Value: "than"},
 				{Type: eofToken, Value: ""},
 			},
 		},

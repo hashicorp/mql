@@ -31,7 +31,7 @@ func Test_exprToWhereClause(t *testing.T) {
 	testValidators, err := fieldValidators(reflect.ValueOf(testModel{}))
 	require.NoError(t, err)
 
-	testParser := newParser("name=alice")
+	testParser := newParser("name=\"alice\"")
 	testExpr, err := testParser.parse()
 	require.NoError(t, err)
 

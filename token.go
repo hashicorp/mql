@@ -27,6 +27,7 @@ const (
 	notEqualToken
 	containsToken
 	numberToken
+	symbolToken
 
 	// keywords
 	andToken
@@ -50,6 +51,7 @@ var tokenTypeToString = map[tokenType]string{
 	andToken:                "and",
 	orToken:                 "or",
 	numberToken:             "num",
+	symbolToken:             "symbol",
 }
 
 // String returns a string of the tokenType and will return "Unknown" for

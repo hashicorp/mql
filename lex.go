@@ -11,6 +11,10 @@ import (
 	"unicode"
 )
 
+const (
+	doubleQuote = '"'
+)
+
 type lexStateFunc func(*lexer) (lexStateFunc, error)
 
 type lexer struct {
@@ -90,6 +94,7 @@ func lexStartState(l *lexer) (lexStateFunc, error) {
 // lexStringState scans for strings and can emit the following tokens:
 // orToken, andToken, containsToken, stringToken
 func lexStringState(l *lexer) (lexStateFunc, error) {
+	const op = "mql.lexStringState"
 	panicIfNil(l, "lexStringState", "lexer")
 	defer l.current.clear()
 
@@ -101,11 +106,12 @@ func lexStringState(l *lexer) (lexStateFunc, error) {
 	r := l.read()
 	var quotedString bool
 	switch r {
-	case '"':
+	case doubleQuote:
 		quotedString = true
 	default:
 		l.unread()
 	}
+	finalQuote := false
 
 WriteToBuf:
 	// keep reading runes into the buffer until we encounter eof of non-text runes.
@@ -114,7 +120,8 @@ WriteToBuf:
 		switch {
 		case r == eof:
 			break WriteToBuf
-		case r == '"' && quotedString: // end of the quoted string we're scanning
+		case r == doubleQuote && quotedString: // end of the quoted string we're scanning
+			finalQuote = true
 			break WriteToBuf
 		case (isSpace(r) || isSpecial(r)) && !quotedString: // whitespace or a special char, and we're not scanning a quoted string
 			l.unread()
@@ -136,11 +143,19 @@ WriteToBuf:
 		case "or":
 			l.emit(orToken, "or")
 			return lexStartState, nil
+		default:
+			l.emit(symbolToken, buf.String())
+			return lexStartState, nil
 		}
 	}
 
-	l.emit(stringToken, buf.String())
-	return lexStartState, nil
+	switch {
+	case !finalQuote:
+		return nil, fmt.Errorf("%s: %w for \"%s", op, ErrMissingEndOfStringTokenDelimiter, buf.String())
+	default:
+		l.emit(stringToken, buf.String())
+		return lexStartState, nil
+	}
 }
 
 func lexNumberState(l *lexer) (lexStateFunc, error) {

@@ -22,7 +22,7 @@ func Test_parser(t *testing.T) {
 	}{
 		{
 			name: "success-comparisonExpr",
-			raw:  "name=alice",
+			raw:  "name=\"alice\"",
 			want: &comparisonExpr{
 				column:       "name",
 				comparisonOp: "=",
@@ -31,7 +31,7 @@ func Test_parser(t *testing.T) {
 		},
 		{
 			name: "success-comparisonExpr-with-whitespace",
-			raw:  "name= 	alice",
+			raw:  "name= 	\"alice\"",
 			want: &comparisonExpr{
 				column:       "name",
 				comparisonOp: "=",
@@ -40,7 +40,7 @@ func Test_parser(t *testing.T) {
 		},
 		{
 			name: "success-comparisonExpr-with-parens",
-			raw:  "(name=alice)",
+			raw:  "(name=\"alice\")",
 			want: &comparisonExpr{
 				column:       "name",
 				comparisonOp: "=",
@@ -49,7 +49,7 @@ func Test_parser(t *testing.T) {
 		},
 		{
 			name: "success-case-sensitive",
-			raw:  "FirstName=alice",
+			raw:  "FirstName=\"alice\"",
 			want: &comparisonExpr{
 				column:       "FirstName",
 				comparisonOp: "=",
@@ -67,7 +67,7 @@ func Test_parser(t *testing.T) {
 		},
 		{
 			name: "success-quoted-empty-value",
-			raw:  "(name!=\"\" and description=eve) or (name=alice)",
+			raw:  "(name!=\"\" and description=\"eve\") or (name=\"alice\")",
 			want: &logicalExpr{
 				leftExpr: &logicalExpr{
 					leftExpr: &comparisonExpr{
@@ -92,7 +92,7 @@ func Test_parser(t *testing.T) {
 		},
 		{
 			name: "success-or-comparison",
-			raw:  "name=alice or version >= 110",
+			raw:  "name=\"alice\" or version >= 110",
 			want: &logicalExpr{
 				leftExpr: &comparisonExpr{
 					column:       "name",
@@ -127,21 +127,21 @@ func Test_parser(t *testing.T) {
 		},
 		{
 			name:            "err-missing-logicalOp",
-			raw:             "name=alice (name=eve)",
+			raw:             "name=\"alice\" (name=\"eve\")",
 			wantErrIs:       ErrMissingLogicalOp,
 			wantErrContains: "missing logical operator before right side",
 		},
 		{
 			name:            "err-too-many-rightExprs",
-			raw:             "name=alice=bob",
+			raw:             "name=\"alice\"=\"bob\"",
 			wantErrIs:       ErrUnexpectedToken,
-			wantErrContains: `unexpected token eq:"=" in: name=alice=bob`,
+			wantErrContains: `unexpected token eq:"=" in: name="alice"="bob"`,
 		},
 		{
 			name:            "err-invalid-comparison-expr",
-			raw:             "name=alice(invalid=comparison)",
+			raw:             "name=\"alice\"(invalid=\"comparison\")",
 			wantErrIs:       ErrUnexpectedOpeningParen,
-			wantErrContains: `unexpected opening paren after (comparisonExpr: name = alice) in: "name=alice(invalid=comparison)`,
+			wantErrContains: `unexpected opening paren after (comparisonExpr: name = alice) in: "name=\"alice\"(invalid=\"comparison\")`,
 		},
 		{
 			name:            "err-missing-comparison-op",
@@ -151,33 +151,33 @@ func Test_parser(t *testing.T) {
 		},
 		{
 			name:            "err-missing-comparison-op-in-logical-expr",
-			raw:             "name=alice or age",
+			raw:             "name=\"alice\" or age",
 			wantErrIs:       ErrMissingComparisonOp,
-			wantErrContains: "missing comparison operator in: \"name=alice or age\"",
+			wantErrContains: "missing comparison operator in: \"name=\\\"alice\\\" or age\"",
 		},
 		{
 			name:            "err-trailing-logical-op",
-			raw:             "name=alice or",
+			raw:             "name=\"alice\" or",
 			wantErrIs:       ErrMissingRightSideExpr,
-			wantErrContains: "logical operator without a right side expr in: \"name=alice or\"",
+			wantErrContains: "logical operator without a right side expr in: \"name=\\\"alice\\\" or\"",
 		},
 		{
 			name:            "err-unexpected-token",
-			raw:             "name==eve",
+			raw:             "name==\"eve\"",
 			wantErrIs:       ErrUnexpectedToken,
-			wantErrContains: `unexpected token "=" in: "name==eve"`,
+			wantErrContains: `unexpected token "=" in: "name==\"eve\""`,
 		},
 		{
 			name:            "err-unexpected-logical-op",
-			raw:             "name=alice and and description=friend",
+			raw:             `name="alice" and and description="friend"`,
 			wantErrIs:       ErrUnexpectedLogicalOp,
-			wantErrContains: `unexpected logical operator "and" when we've already parsed one for expr in: "name=alice and and description=friend"`,
+			wantErrContains: `unexpected logical operator "and" when we've already parsed one for expr in: "name=\"alice\" and and description=\"friend\""`,
 		},
 		{
 			name:            "err-missing-logical-op",
-			raw:             "name=alice description=friend",
+			raw:             `name="alice" description="friend"`,
 			wantErrIs:       ErrUnexpectedExpr,
-			wantErrContains: `unexpected expression starting at "description" in: "name=alice description=friend"`,
+			wantErrContains: `unexpected expression starting at "description" in: "name=\"alice\" description=\"friend\""`,
 		},
 		{
 			name:            "err-unexpected-closing-paren",
@@ -187,9 +187,9 @@ func Test_parser(t *testing.T) {
 		},
 		{
 			name:            "err-unexpected-opening-paren",
-			raw:             "((name=alice)",
+			raw:             "((name=\"alice\")",
 			wantErrIs:       ErrMissingClosingParen,
-			wantErrContains: `missing closing paren in: "((name=alice)"`,
+			wantErrContains: `missing closing paren in: "((name=\"alice\")"`,
 		},
 		{
 			name:            "err-invalid-not-equal-after-whitespace",
@@ -199,7 +199,7 @@ func Test_parser(t *testing.T) {
 		},
 		{
 			name: "success-double-parens",
-			raw:  "((name=alice))",
+			raw:  "((name=\"alice\"))",
 			want: &comparisonExpr{
 				column:       "name",
 				comparisonOp: "=",
@@ -208,7 +208,7 @@ func Test_parser(t *testing.T) {
 		},
 		{
 			name: "success-logical-expr-with-contains",
-			raw:  "name=alice and address%\"my town\"",
+			raw:  "name=\"alice\" and address%\"my town\"",
 			want: &logicalExpr{
 				leftExpr: &comparisonExpr{
 					column:       "name",
@@ -225,7 +225,7 @@ func Test_parser(t *testing.T) {
 		},
 		{
 			name: "nested-logical-expr",
-			raw:  "(name=alice and address%hometown) or age > 21.5",
+			raw:  "(name=\"alice\" and address%\"hometown\") or age > 21.5",
 			want: &logicalExpr{
 				leftExpr: &logicalExpr{
 					leftExpr: &comparisonExpr{
@@ -250,7 +250,7 @@ func Test_parser(t *testing.T) {
 		},
 		{
 			name: "reverse-nested-logical-expr",
-			raw:  "age > 21.5 or (name=alice and address%hometown)",
+			raw:  "age > 21.5 or (name=\"alice\" and address%\"hometown\")",
 			want: &logicalExpr{
 				leftExpr: &comparisonExpr{
 					column:       "age",
@@ -275,7 +275,7 @@ func Test_parser(t *testing.T) {
 		},
 		{
 			name: "reverse-nested-logical-expr",
-			raw:  `name=one or (created_at>"now()-interval '1 day'")`,
+			raw:  `name="one" or (created_at>"now()-interval '1 day'")`,
 			want: &logicalExpr{
 				leftExpr: &comparisonExpr{
 					column:       "name",

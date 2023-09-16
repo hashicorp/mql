@@ -66,7 +66,7 @@ TkLoop:
 				logicExpr.rightExpr = e.leftExpr
 				break TkLoop
 			}
-		case stringToken, numberToken:
+		case stringToken, numberToken, symbolToken:
 			if (logicExpr.leftExpr != nil && logicExpr.logicalOp == "") ||
 				(logicExpr.leftExpr != nil && logicExpr.rightExpr != nil) {
 				return nil, fmt.Errorf("%s: %w starting at %q in: %q", op, ErrUnexpectedExpr, p.currentToken.Value, p.raw)
@@ -147,11 +147,11 @@ func (p *parser) parseComparisonExpr() (expr, error) {
 			}
 
 		// columns must come first, so handle those conditions
-		case cmpExpr.column == "" && p.currentToken.Type != stringToken:
+		case cmpExpr.column == "" && p.currentToken.Type != symbolToken:
 			// this should be unreachable because parseComparisonExpr(...) is
-			// called when a stringToken is the current token, but I've kept
+			// called when a symbolToken is the current token, but I've kept
 			// this case here for completeness
-			return nil, fmt.Errorf("%s: %w: we expected a stringToken and got %s in: %q", op, ErrUnexpectedToken, p.currentToken.Value, p.raw)
+			return nil, fmt.Errorf("%s: %w: we expected a %s and got %s == %s in: %q", op, ErrUnexpectedToken, symbolToken, p.currentToken.Type, p.currentToken.Value, p.raw)
 		case cmpExpr.column == "": // has to be stringToken representing the column
 			cmpExpr.column = p.currentToken.Value
 
@@ -164,11 +164,18 @@ func (p *parser) parseComparisonExpr() (expr, error) {
 			cmpExpr.comparisonOp = c
 
 		// finally, values must come at the end
-		case cmpExpr.value == nil && (p.currentToken.Type != stringToken && p.currentToken.Type != numberToken):
+		case cmpExpr.value == nil && (p.currentToken.Type != stringToken && p.currentToken.Type != numberToken && p.currentToken.Type != symbolToken):
 			return nil, fmt.Errorf("%s: %w %q in: %q", op, ErrUnexpectedToken, p.currentToken.Value, p.raw)
 		case cmpExpr.value == nil:
-			s := p.currentToken.Value
-			cmpExpr.value = &s
+			switch {
+			case p.currentToken.Type == symbolToken:
+				return nil, fmt.Errorf("%s: %w %s == %s (expected: %s or %s) in %q", op, ErrInvalidComparisonValueType, p.currentToken.Type, p.currentToken.Value, stringToken, numberToken, p.raw)
+			case p.currentToken.Type == stringToken, p.currentToken.Type == numberToken:
+				s := p.currentToken.Value
+				cmpExpr.value = &s
+			default:
+				return nil, fmt.Errorf("%s: %w of %s == %s", op, ErrUnexpectedToken, p.currentToken.Type, p.currentToken.Value)
+			}
 		}
 		if err := p.scan(); err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)

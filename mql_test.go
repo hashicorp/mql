@@ -42,7 +42,7 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			name:  "success",
-			query: "(name=alice and email=eve@example.com and member_number = 1) or (age > 21 or length < 1.5)",
+			query: "(name=\"alice\" and email=\"eve@example.com\" and member_number = 1) or (age > 21 or length < 1.5)",
 			model: &testModel{},
 			want: &mql.WhereClause{
 				Condition: "(((name=? and email=?) and member_number=?) or (age>? or length<?))",
@@ -51,7 +51,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "null-string",
-			query: "name=null",
+			query: "name=\"null\"",
 			model: &testModel{},
 			want: &mql.WhereClause{
 				Condition: "name=?",
@@ -60,7 +60,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "success-contains",
-			query: "name%alice",
+			query: "name%\"alice\"",
 			model: testModel{},
 			want: &mql.WhereClause{
 				Condition: "name like ?",
@@ -69,7 +69,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "success-WithPgPlaceholder",
-			query: "name=bob or (name%alice or name=eve)",
+			query: "name=\"bob\" or (name%\"alice\" or name=\"eve\")",
 			model: testModel{},
 			opts:  []mql.Option{mql.WithPgPlaceholders()},
 			want: &mql.WhereClause{
@@ -79,28 +79,28 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:            "err-leftExpr-without-op",
-			query:           "age (name=alice)",
+			query:           "age (name=\"alice\")",
 			model:           testModel{},
 			wantErrIs:       mql.ErrUnexpectedOpeningParen,
-			wantErrContains: `unexpected opening paren in: "age (name=alice)"`,
+			wantErrContains: `unexpected opening paren in: "age (name=\"alice\")"`,
 		},
 		{
 			name:            "err-int-model",
-			query:           "name=alice",
+			query:           "name=\"alice\"",
 			model:           1,
 			wantErrIs:       mql.ErrInvalidParameter,
 			wantErrContains: "model must be a struct or a pointer to a struct",
 		},
 		{
 			name:            "err-*int-model",
-			query:           "name=alice",
+			query:           "name=\"alice\"",
 			model:           pointer(1),
 			wantErrIs:       mql.ErrInvalidParameter,
 			wantErrContains: "model must be a struct or a pointer to a struct",
 		},
 		{
 			name:  "err-interface-nil-pointer-model",
-			query: "name=alice",
+			query: "name=\"alice\"",
 			model: func() any {
 				var r io.Reader
 				return r
@@ -119,7 +119,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "success-with-column-map",
-			query: "custom_name=alice",
+			query: "custom_name=\"alice\"",
 			model: testModel{},
 			opts:  []mql.Option{mql.WithColumnMap(map[string]string{"custom_name": "name"})},
 			want: &mql.WhereClause{
@@ -129,7 +129,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "err-WithConverter-missing-field-name",
-			query: "name=alice",
+			query: "name=\"alice\"",
 			model: testModel{},
 			opts: []mql.Option{
 				mql.WithConverter(
@@ -144,7 +144,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "success-WithConverter",
-			query: "(name = alice and email=eve@example.com) or age > 21",
+			query: "(name = \"alice\" and email=\"eve@example.com\") or age > 21",
 			model: testModel{},
 			opts: []mql.Option{
 				mql.WithConverter(
@@ -167,7 +167,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:            "err-ignored-field-used-in-query",
-			query:           "email=eve@example.com or name=alice",
+			query:           "email=\"eve@example.com\" or name=\"alice\"",
 			model:           &testModel{},
 			opts:            []mql.Option{mql.WithIgnoredFields("Name")},
 			wantErrContains: `mql.exprToWhereClause: invalid right expr: mql.exprToWhereClause: invalid column "name"`,
@@ -193,7 +193,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:            "err-invalid-WithConverter-opt",
-			query:           "name=alice",
+			query:           "name=\"alice\"",
 			model:           testModel{},
 			opts:            []mql.Option{mql.WithConverter("TestColumn", nil)},
 			wantErrIs:       mql.ErrInvalidParameter,
