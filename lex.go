@@ -13,6 +13,7 @@ import (
 
 const (
 	doubleQuote = '"'
+	backslash   = '\\'
 )
 
 type lexStateFunc func(*lexer) (lexStateFunc, error)
@@ -120,6 +121,20 @@ WriteToBuf:
 		switch {
 		case r == eof:
 			break WriteToBuf
+		case r == backslash:
+			nextR := l.read()
+			switch {
+			case nextR == eof:
+				buf.WriteRune(r)
+				return nil, fmt.Errorf("%s: %w in %q", op, ErrInvalidTrailingBackslash, buf.String())
+			case nextR == backslash:
+				buf.WriteRune(nextR)
+			case nextR == doubleQuote:
+				buf.WriteRune(nextR)
+			default:
+				buf.WriteRune(r)
+				buf.WriteRune(nextR)
+			}
 		case r == doubleQuote && quotedString: // end of the quoted string we're scanning
 			finalQuote = true
 			break WriteToBuf

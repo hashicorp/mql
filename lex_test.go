@@ -82,6 +82,41 @@ func Test_lexKeywordState(t *testing.T) {
 			wantErrContains: `missing end of stringToken delimiter for "value`,
 		},
 		{
+			name: "quoted-value-with-escaped-quote",
+			raw:  `alice="val\"ue"`,
+			want: []token{
+				{Type: symbolToken, Value: "alice"},
+				{Type: equalToken, Value: "="},
+				{Type: stringToken, Value: `val"ue`},
+				{Type: eofToken, Value: ""},
+			},
+		},
+		{
+			name: "trailing-backslash",
+			raw:  `alice="value\\"`,
+			want: []token{
+				{Type: symbolToken, Value: "alice"},
+				{Type: equalToken, Value: "="},
+				{Type: stringToken, Value: `value\`},
+				{Type: eofToken, Value: ""},
+			},
+		},
+		{
+			name: "backslash-which-is-not-an-escape",
+			raw:  `alice="val\ue"`,
+			want: []token{
+				{Type: symbolToken, Value: "alice"},
+				{Type: equalToken, Value: "="},
+				{Type: stringToken, Value: `val\ue`},
+				{Type: eofToken, Value: ""},
+			},
+		},
+		{
+			name:            "backslash-eof",
+			raw:             `"val\`,
+			wantErrContains: `invalid trailing backslash in "val\`,
+		},
+		{
 			name: "non-quoted-value",
 			raw:  "non-quoted-value",
 			want: []token{
