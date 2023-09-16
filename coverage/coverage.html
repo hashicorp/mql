@@ -65,7 +65,7 @@
 				
 				<option value="file4">github.com/hashicorp/mql/options.go (100.0%)</option>
 				
-				<option value="file5">github.com/hashicorp/mql/parser.go (93.2%)</option>
+				<option value="file5">github.com/hashicorp/mql/parser.go (93.4%)</option>
 				
 				<option value="file6">github.com/hashicorp/mql/stack.go (100.0%)</option>
 				
@@ -313,6 +313,12 @@ import (
         "bytes"
         "fmt"
         "strings"
+        "unicode"
+)
+
+const (
+        doubleQuote = '"'
+        backslash   = '\\'
 )
 
 type lexStateFunc func(*lexer) (lexStateFunc, error)
@@ -382,46 +388,94 @@ func lexStartState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">
                 return lexLeftParenState, nil</span>
         case isSpace(r):<span class="cov8" title="1">
                 return lexWhitespaceState, nil</span>
-        default:<span class="cov8" title="1">
+        case unicode.IsDigit(r) || r == '.':<span class="cov8" title="1">
+                l.unread()
+                return lexNumberState, nil</span>
+        case r == doubleQuote:<span class="cov8" title="1">
                 l.unread()
                 return lexStringState, nil</span>
+        default:<span class="cov8" title="1">
+                l.unread()
+                return lexSymbolState, nil</span>
         }
 }
 
-// lexStringState scans for strings and can emit the following tokens:
-// orToken, andToken, containsToken, stringToken
+// lexStringState scans for strings and can emit a stringToken
 func lexStringState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        const op = "mql.lexStringState"
         panicIfNil(l, "lexStringState", "lexer")
         defer l.current.clear()
 
         // we'll push the runes we read into this buffer and when appropriate will
         // emit tokens using the buffer's data.
-        var buf bytes.Buffer
+        var tokenBuf bytes.Buffer
 
         // before we start looping, let's found out if we're scanning a quoted string
         r := l.read()
-        var quotedString bool
-        switch r </span>{
-        case '"':<span class="cov8" title="1">
-                quotedString = true</span>
+        delimiter := r
+        switch delimiter </span>{
+        case doubleQuote:<span class="cov8" title="1"></span>
         default:<span class="cov8" title="1">
-                l.unread()</span>
+                return nil, fmt.Errorf("%s: %w %q", op, ErrInvalidDelimiter, delimiter)</span>
         }
+        <span class="cov8" title="1">finalDelimiter := false
 
-<span class="cov8" title="1">WriteToBuf:
-        // keep reading runes into the buffer until we encounter eof of non-text runes.
+WriteToBuf:
+        // keep reading runes into the buffer until we encounter eof or the final delimiter.
         for </span><span class="cov8" title="1">{
                 r = l.read()
                 switch </span>{
                 case r == eof:<span class="cov8" title="1">
                         break WriteToBuf</span>
-                case r == '"' &amp;&amp; quotedString:<span class="cov8" title="1"> // end of the quoted string we're scanning
-                        break WriteToBuf</span>
-                case (isSpace(r) || isSpecial(r)) &amp;&amp; !quotedString:<span class="cov8" title="1"> // whitespace or a special char, and we're not scanning a quoted string
-                        l.unread()
+                case r == backslash:<span class="cov8" title="1">
+                        nextR := l.read()
+                        switch </span>{
+                        case nextR == eof:<span class="cov8" title="1">
+                                tokenBuf.WriteRune(r)
+                                return nil, fmt.Errorf("%s: %w in %q", op, ErrInvalidTrailingBackslash, tokenBuf.String())</span>
+                        case nextR == backslash:<span class="cov8" title="1">
+                                tokenBuf.WriteRune(nextR)</span>
+                        case nextR == delimiter:<span class="cov8" title="1">
+                                tokenBuf.WriteRune(nextR)</span>
+                        default:<span class="cov8" title="1">
+                                tokenBuf.WriteRune(r)
+                                tokenBuf.WriteRune(nextR)</span>
+                        }
+                case r == delimiter:<span class="cov8" title="1"> // end of the quoted string we're scanning
+                        finalDelimiter = true
                         break WriteToBuf</span>
                 default:<span class="cov8" title="1"> // otherwise, write the rune into the keyword buffer
-                        buf.WriteRune(r)</span>
+                        tokenBuf.WriteRune(r)</span>
+                }
+        }
+        <span class="cov8" title="1">switch </span>{
+        case !finalDelimiter:<span class="cov8" title="1">
+                return nil, fmt.Errorf("%s: %w for \"%s", op, ErrMissingEndOfStringTokenDelimiter, tokenBuf.String())</span>
+        default:<span class="cov8" title="1">
+                l.emit(stringToken, tokenBuf.String())
+                return lexStartState, nil</span>
+        }
+}
+
+// lexSymbolState scans for strings and can emit the following tokens:
+// orToken, andToken, containsToken
+func lexSymbolState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        const op = "mql.lexSymbolState"
+        panicIfNil(l, "lexSymbolState", "lexer")
+        defer l.current.clear()
+
+ReadRunes:
+        // keep reading runes into the buffer until we encounter eof of non-text runes.
+        for </span><span class="cov8" title="1">{
+                r := l.read()
+                switch </span>{
+                case r == eof:<span class="cov8" title="1">
+                        break ReadRunes</span>
+                case (isSpace(r) || isSpecial(r)):<span class="cov8" title="1"> // whitespace or a special char
+                        l.unread()
+                        break ReadRunes</span>
+                default:<span class="cov8" title="1">
+                        continue ReadRunes</span>
                 }
         }
 
@@ -429,18 +483,49 @@ func lexStringState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1"
         // check if we're dealing with a quoted string, since we want to support
         // emitting string tokens for "and", "or" so those tokens can be used in
         // comparison expr. Example: name % "Johnson and"
-        <span class="cov8" title="1">if !quotedString </span><span class="cov8" title="1">{
-                switch strings.ToLower(buf.String()) </span>{
-                case "and":<span class="cov8" title="1">
-                        l.emit(andToken, "and")
-                        return lexStartState, nil</span>
-                case "or":<span class="cov8" title="1">
-                        l.emit(orToken, "or")
-                        return lexStartState, nil</span>
+        <span class="cov8" title="1">switch strings.ToLower(runesToString(l.current)) </span>{
+        case "and":<span class="cov8" title="1">
+                l.emit(andToken, "and")
+                return lexStartState, nil</span>
+        case "or":<span class="cov8" title="1">
+                l.emit(orToken, "or")
+                return lexStartState, nil</span>
+        default:<span class="cov8" title="1">
+                l.emit(symbolToken, runesToString(l.current))
+                return lexStartState, nil</span>
+        }
+}
+
+func lexNumberState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">{
+        const op = "mql.lexNumberState"
+        defer l.current.clear()
+
+        isFloat := false
+
+        // we'll push the runes we read into this buffer and when appropriate will
+        // emit tokens using the buffer's data.
+        var buf []rune
+WriteToBuf:
+        // keep reading runes into the buffer until we encounter eof of non-number runes.
+        for </span><span class="cov8" title="1">{
+                r := l.read()
+                switch </span>{
+                case r == eof:<span class="cov8" title="1">
+                        break WriteToBuf</span>
+                case r == '.' &amp;&amp; isFloat:<span class="cov8" title="1">
+                        buf = append(buf, r)
+                        return nil, fmt.Errorf("%s: %w in %q", op, ErrInvalidNumber, string(buf))</span>
+                case r == '.' &amp;&amp; !isFloat:<span class="cov8" title="1">
+                        isFloat = true
+                        buf = append(buf, r)</span>
+                case unicode.IsDigit(r) || (r == '.' &amp;&amp; len(buf) == 0):<span class="cov8" title="1">
+                        buf = append(buf, r)</span>
+                default:<span class="cov8" title="1">
+                        l.unread()
+                        break WriteToBuf</span>
                 }
         }
-
-        <span class="cov8" title="1">l.emit(stringToken, buf.String())
+        <span class="cov8" title="1">l.emit(numberToken, string(buf))
         return lexStartState, nil</span>
 }
 
@@ -792,15 +877,9 @@ func WithConverter(fieldName string, fn ValidateConvertFunc) Option <span class=
 // (your Go struct) when parsing. Note: Field names are case sensitive.
 func WithIgnoredFields(fieldName ...string) Option <span class="cov8" title="1">{
         return func(o *options) error </span><span class="cov8" title="1">{
-                if len(fieldName) &gt; 0 </span><span class="cov8" title="1">{
-                        o.withIgnoredFields = make([]string, len(fieldName))
-                        for _, name := range fieldName </span><span class="cov8" title="1">{
-                                o.withIgnoredFields = append(o.withIgnoredFields, name)
-                        }</span>
-                        <span class="cov8" title="1">o.withIgnoredFields = fieldName</span>
-                }
-                <span class="cov8" title="1">return nil</span>
-        }
+                o.withIgnoredFields = fieldName
+                return nil
+        }</span>
 }
 
 // WithPgPlaceholders will use parameters placeholders that are compatible with
@@ -884,7 +963,7 @@ func (p *parser) parseLogicalExpr() (*logicalExpr, error) <span class="cov8" tit
                                 logicExpr.rightExpr = e.leftExpr
                                 break TkLoop</span>
                         }
-                case stringToken:<span class="cov8" title="1">
+                case stringToken, numberToken, symbolToken:<span class="cov8" title="1">
                         if (logicExpr.leftExpr != nil &amp;&amp; logicExpr.logicalOp == "") ||
                                 (logicExpr.leftExpr != nil &amp;&amp; logicExpr.rightExpr != nil) </span><span class="cov8" title="1">{
                                 return nil, fmt.Errorf("%s: %w starting at %q in: %q", op, ErrUnexpectedExpr, p.currentToken.Value, p.raw)
@@ -965,11 +1044,11 @@ func (p *parser) parseComparisonExpr() (expr, error) <span class="cov8" title="1
                         }</span>
 
                 // columns must come first, so handle those conditions
-                case cmpExpr.column == "" &amp;&amp; p.currentToken.Type != stringToken:<span class="cov0" title="0">
+                case cmpExpr.column == "" &amp;&amp; p.currentToken.Type != symbolToken:<span class="cov8" title="1">
                         // this should be unreachable because parseComparisonExpr(...) is
-                        // called when a stringToken is the current token, but I've kept
+                        // called when a symbolToken is the current token, but I've kept
                         // this case here for completeness
-                        return nil, fmt.Errorf("%s: %w: we expected a stringToken and got %s in: %q", op, ErrUnexpectedToken, p.currentToken.Value, p.raw)</span>
+                        return nil, fmt.Errorf("%s: %w: we expected a %s and got %s == %s in: %q", op, ErrUnexpectedToken, symbolToken, p.currentToken.Type, p.currentToken.Value, p.raw)</span>
                 case cmpExpr.column == "":<span class="cov8" title="1"> // has to be stringToken representing the column
                         cmpExpr.column = p.currentToken.Value</span>
 
@@ -982,11 +1061,18 @@ func (p *parser) parseComparisonExpr() (expr, error) <span class="cov8" title="1
                         <span class="cov8" title="1">cmpExpr.comparisonOp = c</span>
 
                 // finally, values must come at the end
-                case cmpExpr.value == nil &amp;&amp; p.currentToken.Type != stringToken:<span class="cov8" title="1">
+                case cmpExpr.value == nil &amp;&amp; (p.currentToken.Type != stringToken &amp;&amp; p.currentToken.Type != numberToken &amp;&amp; p.currentToken.Type != symbolToken):<span class="cov8" title="1">
                         return nil, fmt.Errorf("%s: %w %q in: %q", op, ErrUnexpectedToken, p.currentToken.Value, p.raw)</span>
                 case cmpExpr.value == nil:<span class="cov8" title="1">
-                        s := p.currentToken.Value
-                        cmpExpr.value = &amp;s</span>
+                        switch </span>{
+                        case p.currentToken.Type == symbolToken:<span class="cov8" title="1">
+                                return nil, fmt.Errorf("%s: %w %s == %s (expected: %s or %s) in %q", op, ErrInvalidComparisonValueType, p.currentToken.Type, p.currentToken.Value, stringToken, numberToken, p.raw)</span>
+                        case p.currentToken.Type == stringToken, p.currentToken.Type == numberToken:<span class="cov8" title="1">
+                                s := p.currentToken.Value
+                                cmpExpr.value = &amp;s</span>
+                        default:<span class="cov0" title="0">
+                                return nil, fmt.Errorf("%s: %w of %s == %s", op, ErrUnexpectedToken, p.currentToken.Type, p.currentToken.Value)</span>
+                        }
                 }
                 <span class="cov8" title="1">if err := p.scan(); err != nil </span><span class="cov8" title="1">{
                         return nil, fmt.Errorf("%s: %w", op, err)
@@ -1065,12 +1151,8 @@ func (s *stack[T]) len() int <span class="cov8" title="1">{
 }</span>
 
 func runesToString(s stack[rune]) string <span class="cov8" title="1">{
-        var result string
-        for i := 0; i &lt; len(s.data); i++ </span><span class="cov8" title="1">{
-                result = string(s.data[i]) + result
-        }</span>
-        <span class="cov8" title="1">return result</span>
-}
+        return string(s.data)
+}</span>
 </pre>
 		
 		<pre class="file" id="file7" style="display: none">// Copyright (c) HashiCorp, Inc.
@@ -1101,6 +1183,8 @@ const (
         equalToken
         notEqualToken
         containsToken
+        numberToken
+        symbolToken
 
         // keywords
         andToken
@@ -1123,6 +1207,8 @@ var tokenTypeToString = map[tokenType]string{
         containsToken:           "contains",
         andToken:                "and",
         orToken:                 "or",
+        numberToken:             "num",
+        symbolToken:             "symbol",
 }
 
 // String returns a string of the tokenType and will return "Unknown" for
