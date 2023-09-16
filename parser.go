@@ -66,7 +66,7 @@ TkLoop:
 				logicExpr.rightExpr = e.leftExpr
 				break TkLoop
 			}
-		case stringToken:
+		case stringToken, numberToken:
 			if (logicExpr.leftExpr != nil && logicExpr.logicalOp == "") ||
 				(logicExpr.leftExpr != nil && logicExpr.rightExpr != nil) {
 				return nil, fmt.Errorf("%s: %w starting at %q in: %q", op, ErrUnexpectedExpr, p.currentToken.Value, p.raw)
@@ -164,7 +164,7 @@ func (p *parser) parseComparisonExpr() (expr, error) {
 			cmpExpr.comparisonOp = c
 
 		// finally, values must come at the end
-		case cmpExpr.value == nil && p.currentToken.Type != stringToken:
+		case cmpExpr.value == nil && (p.currentToken.Type != stringToken && p.currentToken.Type != numberToken):
 			return nil, fmt.Errorf("%s: %w %q in: %q", op, ErrUnexpectedToken, p.currentToken.Value, p.raw)
 		case cmpExpr.value == nil:
 			s := p.currentToken.Value

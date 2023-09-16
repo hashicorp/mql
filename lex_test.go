@@ -20,6 +20,37 @@ func Test_lexKeywordState(t *testing.T) {
 		wantErrContains string
 	}{
 		{
+			name: "valid-float-starting-with-decimal",
+			raw:  `.21`,
+			want: []token{
+				{Type: numberToken, Value: ".21"},
+			},
+		},
+		{
+			name: "valid-float",
+			raw:  `1.21`,
+			want: []token{
+				{Type: numberToken, Value: "1.21"},
+			},
+		},
+		{
+			name:            "invalid-float",
+			raw:             `1.21.`,
+			wantErrIs:       ErrInvalidNumber,
+			wantErrContains: `invalid number in "1.21."`,
+		},
+		{
+			name: "valid-float-multi-tokens",
+			raw:  `(age=1.21)`,
+			want: []token{
+				{Type: startLogicalExprToken, Value: "("},
+				{Type: stringToken, Value: "age"},
+				{Type: equalToken, Value: "="},
+				{Type: numberToken, Value: "1.21"},
+				{Type: endLogicalExprToken, Value: ")"},
+			},
+		},
+		{
 			name: "just-eof",
 			raw:  ``,
 			want: []token{
@@ -190,6 +221,19 @@ func Test_lexKeywordState(t *testing.T) {
 					ContainsOp,
 				)
 				assert.Equal(want, tk)
+			}
+			if len(tc.want) == 0 {
+				lex := newLexer(tc.raw)
+				tk, err := lex.nextToken()
+				assert.Empty(tk)
+				if tc.wantErrContains != "" {
+					require.Error(err)
+					if tc.wantErrIs != nil {
+						assert.ErrorIs(err, tc.wantErrIs)
+					}
+					assert.ErrorContains(err, tc.wantErrContains)
+					return
+				}
 			}
 		})
 	}

@@ -24,4 +24,5 @@ var (
 	ErrMissingRightSideExpr   = errors.New("logical operator without a right side expr")
 	ErrMissingComparisonValue = errors.New("missing comparison value")
 	ErrInvalidColumn          = errors.New("invalid column")
+	ErrInvalidNumber          = errors.New("invalid number")
 )

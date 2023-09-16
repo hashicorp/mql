@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"unicode"
 )
 
 type lexStateFunc func(*lexer) (lexStateFunc, error)
@@ -77,6 +78,9 @@ func lexStartState(l *lexer) (lexStateFunc, error) {
 		return lexLeftParenState, nil
 	case isSpace(r):
 		return lexWhitespaceState, nil
+	case unicode.IsDigit(r) || r == '.':
+		l.unread()
+		return lexNumberState, nil
 	default:
 		l.unread()
 		return lexStringState, nil
@@ -136,6 +140,39 @@ WriteToBuf:
 	}
 
 	l.emit(stringToken, buf.String())
+	return lexStartState, nil
+}
+
+func lexNumberState(l *lexer) (lexStateFunc, error) {
+	const op = "mql.lexNumberState"
+	defer l.current.clear()
+
+	isFloat := false
+
+	// we'll push the runes we read into this buffer and when appropriate will
+	// emit tokens using the buffer's data.
+	var buf []rune
+WriteToBuf:
+	// keep reading runes into the buffer until we encounter eof of non-number runes.
+	for {
+		r := l.read()
+		switch {
+		case r == eof:
+			break WriteToBuf
+		case r == '.' && isFloat:
+			buf = append(buf, r)
+			return nil, fmt.Errorf("%s: %w in %q", op, ErrInvalidNumber, string(buf))
+		case r == '.' && !isFloat:
+			isFloat = true
+			buf = append(buf, r)
+		case unicode.IsDigit(r) || (r == '.' && len(buf) == 0):
+			buf = append(buf, r)
+		default:
+			l.unread()
+			break WriteToBuf
+		}
+	}
+	l.emit(numberToken, string(buf))
 	return lexStartState, nil
 }
 
