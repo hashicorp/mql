@@ -4,6 +4,8 @@
 package mql
 
 import (
+	"bufio"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -287,7 +289,18 @@ func Test_lexKeywordState(t *testing.T) {
 			}
 		})
 	}
-
+	t.Run("invalid-delimiter", func(t *testing.T) {
+		lex := &lexer{
+			source: bufio.NewReader(strings.NewReader("|alice|")),
+			state:  lexStringState,
+			tokens: make(chan token, 1), // define a ring buffer for emitted tokens
+		}
+		s, err := lexStringState(lex)
+		require.Error(t, err)
+		assert.Empty(t, s)
+		assert.ErrorIs(t, err, ErrInvalidDelimiter)
+		assert.ErrorContains(t, err, "invalid delimiter '|'")
+	})
 }
 
 func Test_lexWhitespaceState(t *testing.T) {

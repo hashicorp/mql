@@ -86,14 +86,16 @@ func lexStartState(l *lexer) (lexStateFunc, error) {
 	case unicode.IsDigit(r) || r == '.':
 		l.unread()
 		return lexNumberState, nil
-	default:
+	case r == doubleQuote:
 		l.unread()
 		return lexStringState, nil
+	default:
+		l.unread()
+		return lexSymbolState, nil
 	}
 }
 
-// lexStringState scans for strings and can emit the following tokens:
-// orToken, andToken, containsToken, stringToken
+// lexStringState scans for strings and can emit a stringToken
 func lexStringState(l *lexer) (lexStateFunc, error) {
 	const op = "mql.lexStringState"
 	panicIfNil(l, "lexStringState", "lexer")
@@ -101,21 +103,20 @@ func lexStringState(l *lexer) (lexStateFunc, error) {
 
 	// we'll push the runes we read into this buffer and when appropriate will
 	// emit tokens using the buffer's data.
-	var buf bytes.Buffer
+	var tokenBuf bytes.Buffer
 
 	// before we start looping, let's found out if we're scanning a quoted string
 	r := l.read()
-	var quotedString bool
-	switch r {
+	delimiter := r
+	switch delimiter {
 	case doubleQuote:
-		quotedString = true
 	default:
-		l.unread()
+		return nil, fmt.Errorf("%s: %w %q", op, ErrInvalidDelimiter, delimiter)
 	}
-	finalQuote := false
+	finalDelimiter := false
 
 WriteToBuf:
-	// keep reading runes into the buffer until we encounter eof of non-text runes.
+	// keep reading runes into the buffer until we encounter eof or the final delimiter.
 	for {
 		r = l.read()
 		switch {
@@ -125,20 +126,51 @@ WriteToBuf:
 			nextR := l.read()
 			switch {
 			case nextR == eof:
-				buf.WriteRune(r)
-				return nil, fmt.Errorf("%s: %w in %q", op, ErrInvalidTrailingBackslash, buf.String())
+				tokenBuf.WriteRune(r)
+				return nil, fmt.Errorf("%s: %w in %q", op, ErrInvalidTrailingBackslash, tokenBuf.String())
 			case nextR == backslash:
-				buf.WriteRune(nextR)
-			case nextR == doubleQuote:
-				buf.WriteRune(nextR)
+				tokenBuf.WriteRune(nextR)
+			case nextR == delimiter:
+				tokenBuf.WriteRune(nextR)
 			default:
-				buf.WriteRune(r)
-				buf.WriteRune(nextR)
+				tokenBuf.WriteRune(r)
+				tokenBuf.WriteRune(nextR)
 			}
-		case r == doubleQuote && quotedString: // end of the quoted string we're scanning
-			finalQuote = true
+		case r == delimiter: // end of the quoted string we're scanning
+			finalDelimiter = true
 			break WriteToBuf
-		case (isSpace(r) || isSpecial(r)) && !quotedString: // whitespace or a special char, and we're not scanning a quoted string
+		default: // otherwise, write the rune into the keyword buffer
+			tokenBuf.WriteRune(r)
+		}
+	}
+	switch {
+	case !finalDelimiter:
+		return nil, fmt.Errorf("%s: %w for \"%s", op, ErrMissingEndOfStringTokenDelimiter, tokenBuf.String())
+	default:
+		l.emit(stringToken, tokenBuf.String())
+		return lexStartState, nil
+	}
+}
+
+// lexSymbolState scans for strings and can emit the following tokens:
+// orToken, andToken, containsToken
+func lexSymbolState(l *lexer) (lexStateFunc, error) {
+	const op = "mql.lexSymbolState"
+	panicIfNil(l, "lexSymbolState", "lexer")
+	defer l.current.clear()
+
+	// we'll push the runes we read into this buffer and when appropriate will
+	// emit tokens using the buffer's data.
+	var buf bytes.Buffer
+
+WriteToBuf:
+	// keep reading runes into the buffer until we encounter eof of non-text runes.
+	for {
+		r := l.read()
+		switch {
+		case r == eof:
+			break WriteToBuf
+		case (isSpace(r) || isSpecial(r)): // whitespace or a special char
 			l.unread()
 			break WriteToBuf
 		default: // otherwise, write the rune into the keyword buffer
@@ -146,29 +178,15 @@ WriteToBuf:
 		}
 	}
 
-	// before emitting a token, do we have a special string?  But, first let's
-	// check if we're dealing with a quoted string, since we want to support
-	// emitting string tokens for "and", "or" so those tokens can be used in
-	// comparison expr. Example: name % "Johnson and"
-	if !quotedString {
-		switch strings.ToLower(buf.String()) {
-		case "and":
-			l.emit(andToken, "and")
-			return lexStartState, nil
-		case "or":
-			l.emit(orToken, "or")
-			return lexStartState, nil
-		default:
-			l.emit(symbolToken, buf.String())
-			return lexStartState, nil
-		}
-	}
-
-	switch {
-	case !finalQuote:
-		return nil, fmt.Errorf("%s: %w for \"%s", op, ErrMissingEndOfStringTokenDelimiter, buf.String())
+	switch strings.ToLower(runesToString(l.current)) {
+	case "and":
+		l.emit(andToken, "and")
+		return lexStartState, nil
+	case "or":
+		l.emit(orToken, "or")
+		return lexStartState, nil
 	default:
-		l.emit(stringToken, buf.String())
+		l.emit(symbolToken, buf.String())
 		return lexStartState, nil
 	}
 }

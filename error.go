@@ -28,4 +28,5 @@ var (
 	ErrInvalidComparisonValueType       = errors.New("invalid comparison value type")
 	ErrMissingEndOfStringTokenDelimiter = errors.New("missing end of stringToken delimiter")
 	ErrInvalidTrailingBackslash         = errors.New("invalid trailing backslash")
+	ErrInvalidDelimiter                 = errors.New("invalid delimiter")
 )
