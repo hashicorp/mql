@@ -159,22 +159,18 @@ func lexSymbolState(l *lexer) (lexStateFunc, error) {
 	panicIfNil(l, "lexSymbolState", "lexer")
 	defer l.current.clear()
 
-	// we'll push the runes we read into this buffer and when appropriate will
-	// emit tokens using the buffer's data.
-	var buf bytes.Buffer
-
-WriteToBuf:
+ReadRunes:
 	// keep reading runes into the buffer until we encounter eof of non-text runes.
 	for {
 		r := l.read()
 		switch {
 		case r == eof:
-			break WriteToBuf
+			break ReadRunes
 		case (isSpace(r) || isSpecial(r)): // whitespace or a special char
 			l.unread()
-			break WriteToBuf
-		default: // otherwise, write the rune into the keyword buffer
-			buf.WriteRune(r)
+			break ReadRunes
+		default:
+			continue ReadRunes
 		}
 	}
 
@@ -186,7 +182,7 @@ WriteToBuf:
 		l.emit(orToken, "or")
 		return lexStartState, nil
 	default:
-		l.emit(symbolToken, buf.String())
+		l.emit(symbolToken, runesToString(l.current))
 		return lexStartState, nil
 	}
 }
