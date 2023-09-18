@@ -50,6 +50,24 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
+			name:  "success-single-quote-delimiters",
+			query: "(name='alice' and email='eve@example.com' and member_number = 1) or (age > 21 or length < 1.5)",
+			model: &testModel{},
+			want: &mql.WhereClause{
+				Condition: "(((name=? and email=?) and member_number=?) or (age>? or length<?))",
+				Args:      []any{"alice", "eve@example.com", "1", 21, 1.5},
+			},
+		},
+		{
+			name:  "success-backtick-delimiters",
+			query: "(name=`alice` and email=`eve@example.com` and member_number = 1) or (age > 21 or length < 1.5)",
+			model: &testModel{},
+			want: &mql.WhereClause{
+				Condition: "(((name=? and email=?) and member_number=?) or (age>? or length<?))",
+				Args:      []any{"alice", "eve@example.com", "1", 21, 1.5},
+			},
+		},
+		{
 			name:  "null-string",
 			query: "name=\"null\"",
 			model: &testModel{},

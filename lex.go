@@ -13,6 +13,8 @@ import (
 
 const (
 	doubleQuote = '"'
+	singleQuote = '\''
+	backtick    = '`'
 	backslash   = '\\'
 )
 
@@ -86,7 +88,7 @@ func lexStartState(l *lexer) (lexStateFunc, error) {
 	case unicode.IsDigit(r) || r == '.':
 		l.unread()
 		return lexNumberState, nil
-	case r == doubleQuote:
+	case isDelimiter(r):
 		l.unread()
 		return lexStringState, nil
 	default:
@@ -108,9 +110,7 @@ func lexStringState(l *lexer) (lexStateFunc, error) {
 	// before we start looping, let's found out if we're scanning a quoted string
 	r := l.read()
 	delimiter := r
-	switch delimiter {
-	case doubleQuote:
-	default:
+	if !isDelimiter(delimiter) {
 		return nil, fmt.Errorf("%s: %w %q", op, ErrInvalidDelimiter, delimiter)
 	}
 	finalDelimiter := false
@@ -364,4 +364,13 @@ func (l *lexer) read() rune {
 func (l *lexer) unread() {
 	_ = l.source.UnreadRune() // error ignore which only occurs when nothing has been previously read
 	_, _ = l.current.pop()
+}
+
+func isDelimiter(r rune) bool {
+	switch r {
+	case doubleQuote, singleQuote, backtick:
+		return true
+	default:
+		return false
+	}
 }

@@ -71,8 +71,24 @@ func Test_lexKeywordState(t *testing.T) {
 			},
 		},
 		{
-			name: "quoted-value",
+			name: "quoted-value-double-quotes",
 			raw:  `"value"`,
+			want: []token{
+				{Type: stringToken, Value: `value`},
+				{Type: eofToken, Value: ""},
+			},
+		},
+		{
+			name: "quoted-value-single-quote",
+			raw:  `'value'`,
+			want: []token{
+				{Type: stringToken, Value: `value`},
+				{Type: eofToken, Value: ""},
+			},
+		},
+		{
+			name: "quoted-value-backtick",
+			raw:  "`value`",
 			want: []token{
 				{Type: stringToken, Value: `value`},
 				{Type: eofToken, Value: ""},
@@ -84,12 +100,32 @@ func Test_lexKeywordState(t *testing.T) {
 			wantErrContains: `missing end of stringToken delimiter for "value`,
 		},
 		{
-			name: "quoted-value-with-escaped-quote",
+			name: "quoted-value-with-escaped-double-quote",
 			raw:  `alice="val\"ue"`,
 			want: []token{
 				{Type: symbolToken, Value: "alice"},
 				{Type: equalToken, Value: "="},
 				{Type: stringToken, Value: `val"ue`},
+				{Type: eofToken, Value: ""},
+			},
+		},
+		{
+			name: "quoted-value-with-escaped-single-quote",
+			raw:  `alice='val\'ue'`,
+			want: []token{
+				{Type: symbolToken, Value: "alice"},
+				{Type: equalToken, Value: "="},
+				{Type: stringToken, Value: `val'ue`},
+				{Type: eofToken, Value: ""},
+			},
+		},
+		{
+			name: "quoted-value-with-escaped-backtick",
+			raw:  "alice=`val\\`ue`",
+			want: []token{
+				{Type: symbolToken, Value: "alice"},
+				{Type: equalToken, Value: "="},
+				{Type: stringToken, Value: "val`ue"},
 				{Type: eofToken, Value: ""},
 			},
 		},
