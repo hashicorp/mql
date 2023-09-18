@@ -314,7 +314,15 @@ func Test_parser(t *testing.T) {
 
 // Fuzz_parserParse is primarily focused on finding panics
 func Fuzz_parserParse(f *testing.F) {
-	tc := []string{">=!=", "name=default OR age", "< <= = != AND OR and or", "1  !=   \"2\"", "(Name=\"Alice Eve\")"}
+	tc := []string{
+		">=!=",
+		"name=default OR age",
+		"< <= = != AND OR and or",
+		"1  !=   \"2\"",
+		"(Name=\"Alice Eve\")",
+		`name="alice"`,
+		`name="alice\\eve"`,
+	}
 	for _, tc := range tc {
 		f.Add(tc)
 	}

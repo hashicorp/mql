@@ -357,7 +357,15 @@ func Test_lexWhitespaceState(t *testing.T) {
 
 // Fuzz_lexerNextToken is only focused on finding panics
 func Fuzz_lexerNextToken(f *testing.F) {
-	tc := []string{">=!=", "string ( ) > >=", "< <= = != AND OR and or", "1  !=   \"2\""}
+	tc := []string{
+		">=!=",
+		"string ( ) > >=",
+		"< <= = != AND OR and or",
+		"1  !=   \"2\"",
+		`"alice"`,
+		`"alice\\eve"`,
+		`"alice \"owns\" this restaurant`,
+	}
 	for _, tc := range tc {
 		f.Add(tc)
 	}
