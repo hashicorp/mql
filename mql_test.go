@@ -96,6 +96,15 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
+			name:  "success-dd",
+			query: "nAme%\"\"",
+			model: &testModel{},
+			want: &mql.WhereClause{
+				Condition: "name like ?",
+				Args:      []any{"%%"},
+			},
+		},
+		{
 			name:            "err-leftExpr-without-op",
 			query:           "age (name=\"alice\")",
 			model:           testModel{},
@@ -261,7 +270,7 @@ func Fuzz_mqlParse(f *testing.F) {
 	f.Fuzz(func(t *testing.T, s string) {
 		where, err := mql.Parse(s, testModel{})
 		if err == nil {
-			for _, kw := range sqlKeywords {
+			for _, kw := range sqlKeywordsExceptLike {
 				if strings.Contains(strings.ToLower(where.Condition), kw) {
 					t.Errorf("unexpected sql keyword %q in %s", kw, where.Condition)
 				}
@@ -270,11 +279,11 @@ func Fuzz_mqlParse(f *testing.F) {
 	})
 }
 
-var sqlKeywords = []string{
+var sqlKeywordsExceptLike = []string{
 	"select", "from", "where", "join", "left", "right", "inner", "outer",
 	"on", "group", "by", "order", "having", "insert", "update", "delete",
 	"values", "set", "as", "distinct", "limit", "offset", "and", "or",
-	"not", "in", "like", "between", "is", "null", "true", "false",
+	"not", "in", "between", "is", "null", "true", "false",
 	"case", "when", "then", "else", "end", "while", "for", "foreach",
 	"create", "alter", "drop", "table", "view", "index", "sequence",
 	"database", "schema", "function", "procedure", "trigger", "event",
