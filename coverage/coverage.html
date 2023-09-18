@@ -316,11 +316,15 @@ import (
         "unicode"
 )
 
+// Delimiter used to quote strings
+type Delimiter rune
+
 const (
-        doubleQuote = '"'
-        singleQuote = '\''
-        backtick    = '`'
-        backslash   = '\\'
+        DoubleQuote Delimiter = '"'
+        SingleQuote Delimiter = '\''
+        Backtick    Delimiter = '`'
+
+        backslash = '\\'
 )
 
 type lexStateFunc func(*lexer) (lexStateFunc, error)
@@ -672,8 +676,8 @@ func (l *lexer) unread() <span class="cov8" title="1">{
 }</span>
 
 func isDelimiter(r rune) bool <span class="cov8" title="1">{
-        switch r </span>{
-        case doubleQuote, singleQuote, backtick:<span class="cov8" title="1">
+        switch Delimiter(r) </span>{
+        case DoubleQuote, SingleQuote, Backtick:<span class="cov8" title="1">
                 return true</span>
         default:<span class="cov8" title="1">
                 return false</span>
