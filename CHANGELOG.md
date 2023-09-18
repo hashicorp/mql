@@ -4,6 +4,7 @@ Canonical reference for changes, improvements, and bugfixes for mql.
 
 ## Next
 
+* feat: require string tokens used as comparison values to be delimited ([PR](https://github.com/hashicorp/mql/pull/23))
 * chore: automate some coverage reporting bits ([PR](https://github.com/hashicorp/mql/pull/12))
 * tests: add fuzz test for mql.Parse(...)([PR](https://github.com/hashicorp/mql/pull/11))
 

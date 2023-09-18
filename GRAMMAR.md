@@ -40,6 +40,9 @@ A `condition` is any expression that evaluates to a result of type boolean.
 (lparen)? \<logical expr> | \<comparison expr> \<logical operator> \<logical expr> |
 \<comparison expr> (\<rparen)?
 
+### symbol
+
+* \<string>
 
 ### string
 
@@ -47,8 +50,9 @@ A `condition` is any expression that evaluates to a result of type boolean.
 
 ### quoted string
 
-A string delimited by quotes. Note: you can use a quoted string whenever you
-need to include logical operators or whitespace in a string value.
+A string delimited by quotes.  You can escape quotes with a backslash `\"` and
+you can escape a backslash with a second backslash `\\` . Supported delimiters:
+double-quotes.
 
 * \<quote> \<string> \<quote>
 
@@ -60,14 +64,13 @@ enforced by the RDBMS when the query is executed.
 
 * \<string>
 
-
 ### column identifier
 
 An identifier string token that forms a column name and must match a name in the
 Go struct used in conjunction with the query and of course it must be a valid
 column name for the resource being queried in the RDBMS.
 
-* \<string>
+* \<symbol>
 
 ### comparison operator
 

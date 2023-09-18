@@ -14,7 +14,7 @@ application to SQL injection.
 ### [github.com/go-gorm/gorm](https://github.com/go-gorm/gorm)
 
 ```Go
-w, err := mql.Parse("name=alice or name=bob)",User{})
+w, err := mql.Parse(`name="alice" or name="bob"`,User{})
 if err != nil {
   return nil, err
 }
@@ -24,7 +24,7 @@ err = db.Where(w.Condition, w.Args...).Find(&users).Error
 ### [database/sql](https://pkg.go.dev/database/sql)
 
 ```Go
-w, err := mql.Parse("name=alice or name=bob)",User{}, mql.WithPgPlaceholders())
+w, err := mql.Parse(`name="alice" or name="bob"`,User{}, mql.WithPgPlaceholders())
 if err != nil {
   return nil, err
 }
@@ -35,7 +35,7 @@ rows, err := db.Query(q, w.Args...)
 ### [github.com/hashicorp/go-dbw](https://github.com/hashicorp/go-dbw)
 
 ```Go
-w, err := mql.Parse("name=alice or name=bob)",User{})
+w, err := mql.Parse(`name="alice" or name="bob")`,User{})
 if err != nil {
   return nil, err
 }
@@ -51,7 +51,7 @@ parameterized SQL where clause.
 Fields in your model can be compared with the following operators: `=`, `!=`,
 `>=`, `<=`, `<`, `>`, `%` .
 
-Double quotes `"` can be used to quote strings.
+Double quotes `"` must be used to quote strings.
 
 Comparison operators can have optional leading/trailing whitespace.
 
@@ -68,7 +68,7 @@ See [GRAMMAR.md](./GRAMMAR.md) for a more complete documentation of [mql](https:
 
 Example query:
 
-`name=alice and age > 11 and (region % Boston or region="south shore")`
+`name="alice" and age > 11 and (region % Boston or region="south shore")`
 
 ### Date/Time fields
 
@@ -120,7 +120,7 @@ columnMap := map[string]string{
 }
 
 w, err := mql.Parse(
-    "name=alice",
+    `name="alice"`,
     User{}, 
     mql.WithColumnMap(columnMap))
 
@@ -148,7 +148,7 @@ type User {
 // you want to keep users from using queries that include the user fields
 // of: created_at updated_at
 w, err := mql.Parse(
-    "name=alice",
+    `name="alice"`,
     User{}, 
     mql.WithIgnoreFields("CreatedAt", "UpdatedAt"))
 
@@ -182,7 +182,7 @@ mySQLDateConverter := func(columnName string, comparisonOp mql.ComparisonOp, val
 }
 
 w, err := mql.Parse(
-    `name=alice and created_at > "2023-06-18"`,
+    `name="alice" and created_at > "2023-06-18"`,
     User{}, 
     mql.WithConverter("CreatedAt", mySqlDateConverter))
 
