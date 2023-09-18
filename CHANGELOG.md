@@ -4,6 +4,10 @@ Canonical reference for changes, improvements, and bugfixes for mql.
 
 ## Next
 
+## 0.1.2 (2023/09/18)
+
+* fix: remove "like" from sql keywords checked in fuzzing ([PR](https://github.com/hashicorp/mql/pull/26))
+* feat: add support for backtick and single-quote string delimiters ([PR](https://github.com/hashicorp/mql/pull/25))
 * feat: require string tokens used as comparison values to be delimited ([PR](https://github.com/hashicorp/mql/pull/23))
 * chore: automate some coverage reporting bits ([PR](https://github.com/hashicorp/mql/pull/12))
 * tests: add fuzz test for mql.Parse(...)([PR](https://github.com/hashicorp/mql/pull/11))
