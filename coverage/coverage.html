@@ -316,9 +316,15 @@ import (
         "unicode"
 )
 
+// Delimiter used to quote strings
+type Delimiter rune
+
 const (
-        doubleQuote = '"'
-        backslash   = '\\'
+        DoubleQuote Delimiter = '"'
+        SingleQuote Delimiter = '\''
+        Backtick    Delimiter = '`'
+
+        backslash = '\\'
 )
 
 type lexStateFunc func(*lexer) (lexStateFunc, error)
@@ -391,7 +397,7 @@ func lexStartState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1">
         case unicode.IsDigit(r) || r == '.':<span class="cov8" title="1">
                 l.unread()
                 return lexNumberState, nil</span>
-        case r == doubleQuote:<span class="cov8" title="1">
+        case isDelimiter(r):<span class="cov8" title="1">
                 l.unread()
                 return lexStringState, nil</span>
         default:<span class="cov8" title="1">
@@ -413,11 +419,9 @@ func lexStringState(l *lexer) (lexStateFunc, error) <span class="cov8" title="1"
         // before we start looping, let's found out if we're scanning a quoted string
         r := l.read()
         delimiter := r
-        switch delimiter </span>{
-        case doubleQuote:<span class="cov8" title="1"></span>
-        default:<span class="cov8" title="1">
-                return nil, fmt.Errorf("%s: %w %q", op, ErrInvalidDelimiter, delimiter)</span>
-        }
+        if !isDelimiter(delimiter) </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("%s: %w %q", op, ErrInvalidDelimiter, delimiter)
+        }</span>
         <span class="cov8" title="1">finalDelimiter := false
 
 WriteToBuf:
@@ -479,10 +483,6 @@ ReadRunes:
                 }
         }
 
-        // before emitting a token, do we have a special string?  But, first let's
-        // check if we're dealing with a quoted string, since we want to support
-        // emitting string tokens for "and", "or" so those tokens can be used in
-        // comparison expr. Example: name % "Johnson and"
         <span class="cov8" title="1">switch strings.ToLower(runesToString(l.current)) </span>{
         case "and":<span class="cov8" title="1">
                 l.emit(andToken, "and")
@@ -674,6 +674,15 @@ func (l *lexer) unread() <span class="cov8" title="1">{
         _ = l.source.UnreadRune() // error ignore which only occurs when nothing has been previously read
         _, _ = l.current.pop()
 }</span>
+
+func isDelimiter(r rune) bool <span class="cov8" title="1">{
+        switch Delimiter(r) </span>{
+        case DoubleQuote, SingleQuote, Backtick:<span class="cov8" title="1">
+                return true</span>
+        default:<span class="cov8" title="1">
+                return false</span>
+        }
+}
 </pre>
 		
 		<pre class="file" id="file3" style="display: none">// Copyright (c) HashiCorp, Inc.

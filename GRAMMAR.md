@@ -52,7 +52,7 @@ A `condition` is any expression that evaluates to a result of type boolean.
 
 A string delimited by quotes.  You can escape quotes with a backslash `\"` and
 you can escape a backslash with a second backslash `\\` . Supported delimiters:
-double-quotes.
+double-quotes, single-quotes, backtick.
 
 * \<quote> \<string> \<quote>
 
