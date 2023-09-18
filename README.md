@@ -51,7 +51,9 @@ parameterized SQL where clause.
 Fields in your model can be compared with the following operators: `=`, `!=`,
 `>=`, `<=`, `<`, `>`, `%` .
 
-Double quotes `"` must be used to quote strings.
+Strings must be quoted. Double quotes `"`, single quotes `'` or backticks ``
+` `` can be used as delimiters.  Users can choose whichever supported delimiter
+makes it easier to quote their string.
 
 Comparison operators can have optional leading/trailing whitespace.
 

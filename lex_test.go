@@ -401,6 +401,10 @@ func Fuzz_lexerNextToken(f *testing.F) {
 		`"alice"`,
 		`"alice\\eve"`,
 		`"alice \"owns\" this restaurant`,
+		`'alice'`,
+		"'alice\\'s'",
+		"`alice`",
+		"`alice\\`s",
 	}
 	for _, tc := range tc {
 		f.Add(tc)

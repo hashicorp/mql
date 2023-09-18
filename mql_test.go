@@ -252,6 +252,8 @@ func Fuzz_mqlParse(f *testing.F) {
 		"(Name=\"Alice Eve\")",
 		`name="alice"`,
 		`name="alice\\eve"`,
+		`name='alice'`,
+		"name=`alice's`",
 	}
 	for _, tc := range tc {
 		f.Add(tc)
