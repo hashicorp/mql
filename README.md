@@ -70,7 +70,7 @@ See [GRAMMAR.md](./GRAMMAR.md) for a more complete documentation of [mql](https:
 
 Example query:
 
-`name="alice" and age > 11 and (region % Boston or region="south shore")`
+`name="alice" and age > 11 and (region % 'Boston' or region="south shore")`
 
 ### Date/Time fields
 
