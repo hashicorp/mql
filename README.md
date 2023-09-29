@@ -96,7 +96,7 @@ provide optional validation+conversion functions for fields in your model via
 
 Example date comparison down to the HH::MM using an ISO-8601 format:
 
-`name=alice and created_at>"2023-12-01 14:01"`
+`name="alice" and created_at>"2023-12-01 14:01"`
 
   
 
