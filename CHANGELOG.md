@@ -4,6 +4,9 @@ Canonical reference for changes, improvements, and bugfixes for mql.
 
 ## Next
 
+* chore: add govulncheck to github actions ([PR](https://github.com/hashicorp/mql/pull/30))
+* update go matrix in CI: remove 1.18 and add 1.21 ([PR](https://github.com/hashicorp/mql/pull/30))
+
 ## 0.1.2 (2023/09/18)
 
 * fix: remove "like" from sql keywords checked in fuzzing ([PR](https://github.com/hashicorp/mql/pull/26))
