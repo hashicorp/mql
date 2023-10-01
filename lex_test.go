@@ -388,7 +388,6 @@ func Test_lexWhitespaceState(t *testing.T) {
 			assert.Equal(tc.want, tk)
 		})
 	}
-
 }
 
 // Fuzz_lexerNextToken is only focused on finding panics
