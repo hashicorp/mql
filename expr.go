@@ -130,9 +130,7 @@ const (
 func newLogicalOp(s string) (logicalOp, error) {
 	const op = "newLogicalOp"
 	switch logicalOp(s) {
-	case
-		andOp,
-		orOp:
+	case andOp, orOp:
 		return logicalOp(s), nil
 	default:
 		return "", fmt.Errorf("%s: %w %q", op, ErrInvalidLogicalOp, s)

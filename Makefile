@@ -10,6 +10,9 @@ REPO_PATH := github.com/hashicorp/mql
 fmt:
 	gofumpt -w $$(find . -name '*.go')
 
+.PHONY: gen
+gen: fmt copywrite
+
 .PHONY: test
 test: 
 	go test -race -count=1 ./...
@@ -42,3 +45,12 @@ coverage:
 	cd coverage && \
 	./coverage.sh && \
 	if ./cov-diff.sh ./coverage.log; then git restore coverage.log; fi
+
+.PHONY: tools
+tools:
+	go generate -tags tools tools/tools.go
+	go install github.com/hashicorp/copywrite@v0.15.0
+
+.PHONY: copywrite
+copywrite:
+	copywrite headers

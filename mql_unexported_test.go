@@ -158,6 +158,7 @@ type invalidExpr struct{}
 func (*invalidExpr) Type() exprType {
 	return unknownExprType
 }
+
 func (*invalidExpr) String() string {
 	return "unknown"
 }
