@@ -68,6 +68,15 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
+			name:  "success-multi-columned",
+			query: "(name=`alice`) and (email=`eve@example.com`) and (member_number = 1)",
+			model: &testModel{},
+			want: &mql.WhereClause{
+				Condition: "(name=?) and (email=?) and (member_number=?)",
+				Args:      []any{"alice", "eve@example.com", "1"},
+			},
+		},
+		{
 			name:  "null-string",
 			query: "name=\"null\"",
 			model: &testModel{},
