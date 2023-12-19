@@ -4,8 +4,16 @@ Canonical reference for changes, improvements, and bugfixes for mql.
 
 ## Next
 
+## 0.1.3 (2023/12/19)
+
+* chore(deps): bump golang.org/x/crypto from 0.7.0 to 0.17.0 in /tests/postgres ([PR](https://github.com/hashicorp/mql/pull/33))
+* fix (parse): queries with multiple columns need to properly handle right-side
+  logic expressions when they are complete expressions (having both a left and
+  right side). ([PR](https://github.com/hashicorp/mql/pull/34))
+* chore: add github action to check diffs on generated bits ([PR](https://github.com/hashicorp/mql/pull/32))
+* chore: add race checker to "go test" in github action ([PR](https://github.com/hashicorp/mql/pull/31))
 * chore: add govulncheck to github actions ([PR](https://github.com/hashicorp/mql/pull/30))
-* update go matrix in CI: remove 1.18 and add 1.21 ([PR](https://github.com/hashicorp/mql/pull/30))
+* update go matrix in CI: remove 1.18 and add 1.21 ([PR](https://github.com/hashicorp/mql/pull/30)) 
 
 ## 0.1.2 (2023/09/18)
 
