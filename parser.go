@@ -63,6 +63,14 @@ TkLoop:
 				return nil, fmt.Errorf("%s: %w before right side expression in: %q", op, ErrMissingLogicalOp, p.raw)
 			// finally, assign the right expr
 			case logicExpr.rightExpr == nil:
+				if e.rightExpr != nil {
+					// if e.rightExpr isn't nil, then we've got a complete
+					// expr (left + op + right) and we need to assign this to
+					// our rightExpr
+					logicExpr.rightExpr = e
+					break TkLoop
+				}
+				// otherwise, we need to assign the left side of e to our
 				logicExpr.rightExpr = e.leftExpr
 				break TkLoop
 			}
