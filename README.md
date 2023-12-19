@@ -76,7 +76,7 @@ Example query:
 
 If your model contains a time.Time field, then we'll append `::date` to the
 column name when generating a where clause and the comparison value must be in
-an `ISO-8601` format. 
+an `ISO-8601` format.
 
 Note: It's possible to compare date-time fields down to the
 millisecond using `::date` and a literal in `ISO-8601` format.
@@ -97,6 +97,12 @@ provide optional validation+conversion functions for fields in your model via
 Example date comparison down to the HH::MM using an ISO-8601 format:
 
 `name="alice" and created_at>"2023-12-01 14:01"`
+
+Note: Expressions with the same level of precedence are evaluated right to left.
+Example:
+`name="alice" and age > 11 and region =
+"Boston"` is evaluated as: `name="alice" and (age > 11 and region =
+"Boston")`
 
   
 
@@ -194,10 +200,10 @@ if err != nil {
 
 ```
 
-
 ### Grammar
 
 See: [GRAMMAR.md](./GRAMMAR.md)
+
 
 ## Security
 
