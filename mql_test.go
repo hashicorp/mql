@@ -77,6 +77,15 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
+			name:  "success-multi-columned-with-an-or",
+			query: "(name=`alice`) and (email=`eve@example.com`) or (member_number = 1)",
+			model: &testModel{},
+			want: &mql.WhereClause{
+				Condition: "(name=? and (email=? or member_number=?))",
+				Args:      []any{"alice", "eve@example.com", "1"},
+			},
+		},
+		{
 			name:  "null-string",
 			query: "name=\"null\"",
 			model: &testModel{},
