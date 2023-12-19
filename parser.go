@@ -70,7 +70,7 @@ TkLoop:
 					logicExpr.rightExpr = e
 					break TkLoop
 				}
-				// otherwise, we need to assign the left side of e to our
+				// otherwise, we need to assign the left side of e
 				logicExpr.rightExpr = e.leftExpr
 				break TkLoop
 			}
