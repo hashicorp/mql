@@ -4,6 +4,12 @@ Canonical reference for changes, improvements, and bugfixes for mql.
 
 ## Next
 
+## 0.1.4 (2024/05/14)
+
+* feat: supports configuring multiple converters by @qeesung in [[PR](https://github.com/hashicorp/mql/pull/38)]
+* chore: update deps by @jimlambrt in [[PR](https://github.com/hashicorp/mql/pull/39)]
+* chore (tests/postgres): update deps by @jimlambrt in [[PR](https://github.com/hashicorp/mql/pull/40)]
+
 ## 0.1.3 (2023/12/19)
 
 * chore(deps): bump golang.org/x/crypto from 0.7.0 to 0.17.0 in /tests/postgres ([PR](https://github.com/hashicorp/mql/pull/33))
