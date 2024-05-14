@@ -71,9 +71,9 @@ func exprToWhereClause(e expr, fValidators map[string]validator, opt ...Option) 
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}
-		switch {
-		case opts.withValidateConvertColumn == v.column && !isNil(opts.withValidateConvertFn):
-			return opts.withValidateConvertFn(v.column, v.comparisonOp, v.value)
+		switch validateConvertFn, ok := opts.withValidateConvertFns[v.column]; {
+		case ok && !isNil(validateConvertFn):
+			return validateConvertFn(v.column, v.comparisonOp, v.value)
 		default:
 			columnName := strings.ToLower(v.column)
 			if n, ok := opts.withColumnMap[columnName]; ok {

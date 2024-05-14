@@ -8,12 +8,11 @@ import (
 )
 
 type options struct {
-	withSkipWhitespace        bool
-	withColumnMap             map[string]string
-	withValidateConvertFn     ValidateConvertFunc
-	withValidateConvertColumn string
-	withIgnoredFields         []string
-	withPgPlaceholder         bool
+	withSkipWhitespace     bool
+	withColumnMap          map[string]string
+	withValidateConvertFns map[string]ValidateConvertFunc
+	withIgnoredFields      []string
+	withPgPlaceholder      bool
 }
 
 // Option - how options are passed as args
@@ -21,7 +20,8 @@ type Option func(*options) error
 
 func getDefaultOptions() options {
 	return options{
-		withColumnMap: make(map[string]string),
+		withColumnMap:          make(map[string]string),
+		withValidateConvertFns: make(map[string]ValidateConvertFunc),
 	}
 }
 
@@ -67,8 +67,10 @@ func WithConverter(fieldName string, fn ValidateConvertFunc) Option {
 	return func(o *options) error {
 		switch {
 		case fieldName != "" && !isNil(fn):
-			o.withValidateConvertFn = fn
-			o.withValidateConvertColumn = fieldName
+			if _, exists := o.withValidateConvertFns[fieldName]; exists {
+				return fmt.Errorf("%s: duplicated convert: %w", op, ErrInvalidParameter)
+			}
+			o.withValidateConvertFns[fieldName] = fn
 		case fieldName == "" && !isNil(fn):
 			return fmt.Errorf("%s: missing field name: %w", op, ErrInvalidParameter)
 		case fieldName != "" && isNil(fn):
