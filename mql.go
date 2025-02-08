@@ -87,7 +87,7 @@ func exprToWhereClause(e expr, fValidators map[string]validator, opt ...Option) 
 				}
 				return nil, fmt.Errorf("%s: %w %q %s", op, ErrInvalidColumn, columnName, cols)
 			}
-			w, err := defaultValidateConvert(columnName, v.comparisonOp, v.value, validator, opt...)
+			w, err := defaultValidateConvert(columnName, v.comparisonOp, v.value, validator, opts)
 			if err != nil {
 				return nil, fmt.Errorf("%s: %w", op, err)
 			}

@@ -13,6 +13,7 @@ type options struct {
 	withValidateConvertFns map[string]ValidateConvertFunc
 	withIgnoredFields      []string
 	withPgPlaceholder      bool
+	withTableColumnMap     map[string]string // map of model field names to their table.column name
 }
 
 // Option - how options are passed as args
@@ -22,6 +23,7 @@ func getDefaultOptions() options {
 	return options{
 		withColumnMap:          make(map[string]string),
 		withValidateConvertFns: make(map[string]ValidateConvertFunc),
+		withTableColumnMap:     make(map[string]string),
 	}
 }
 
@@ -44,8 +46,8 @@ func withSkipWhitespace() Option {
 	}
 }
 
-// WithColumnMap provides an optional map of columns from a column in the user
-// provided query to a column in the database model
+// WithColumnMap provides an optional map of columns from the user
+// provided query to a field in the given model
 func WithColumnMap(m map[string]string) Option {
 	return func(o *options) error {
 		if !isNil(m) {
@@ -97,6 +99,17 @@ func WithIgnoredFields(fieldName ...string) Option {
 func WithPgPlaceholders() Option {
 	return func(o *options) error {
 		o.withPgPlaceholder = true
+		return nil
+	}
+}
+
+// WithTableColumnMap provides an optional map of columns from the
+// model to the table.column name in the generated where clause
+func WithTableColumnMap(m map[string]string) Option {
+	return func(o *options) error {
+		if !isNil(m) {
+			o.withTableColumnMap = m
+		}
 		return nil
 	}
 }

@@ -306,6 +306,19 @@ func TestParse(t *testing.T) {
 			wantErrIs:       mql.ErrInvalidParameter,
 			wantErrContains: "missing ConvertToSqlFunc: invalid parameter",
 		},
+		{
+			name:  "success-with-table-column-map",
+			query: "custom_name=\"alice\"",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithColumnMap(map[string]string{"custom_name": "name"}),
+				mql.WithTableColumnMap(map[string]string{"name": "users.custom->>'name'"}),
+			},
+			want: &mql.WhereClause{
+				Condition: "users.custom->>'name'=?",
+				Args:      []any{"alice"},
+			},
+		},
 	}
 	for _, tc := range tests {
 		tc := tc
