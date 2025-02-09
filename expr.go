@@ -77,7 +77,7 @@ func (e *comparisonExpr) isComplete() bool {
 
 // defaultValidateConvert will validate the comparison expr value, and then convert the
 // expr to its SQL equivalence.
-func defaultValidateConvert(columnName string, comparisonOp ComparisonOp, columnValue *string, validator validator, opts options) (*WhereClause, error) {
+func defaultValidateConvert(columnName string, comparisonOp ComparisonOp, columnValue *string, validator validator, opt ...Option) (*WhereClause, error) {
 	const op = "mql.(comparisonExpr).convertToSql"
 	switch {
 	case columnName == "":
@@ -103,10 +103,14 @@ func defaultValidateConvert(columnName string, comparisonOp ComparisonOp, column
 	if err != nil {
 		return nil, fmt.Errorf("%s: %q in %s: %w", op, *e.value, e.String(), ErrInvalidParameter)
 	}
-	newCol, ok := opts.withTableColumnMap[columnName]
-	if ok {
+
+	opts, err := getOpts(opt...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	if n, ok := opts.withTableColumnMap[columnName]; ok {
 		// override our column name with the mapped column name
-		columnName = newCol
+		columnName = n
 	}
 
 	if validator.typ == "time" {

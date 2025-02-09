@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/hashicorp/mql/common.go (100.0%)</option>
 				
-				<option value="file1">github.com/hashicorp/mql/expr.go (100.0%)</option>
+				<option value="file1">github.com/hashicorp/mql/expr.go (97.9%)</option>
 				
 				<option value="file2">github.com/hashicorp/mql/lex.go (100.0%)</option>
 				
@@ -65,7 +65,7 @@
 				
 				<option value="file4">github.com/hashicorp/mql/options.go (100.0%)</option>
 				
-				<option value="file5">github.com/hashicorp/mql/parser.go (93.4%)</option>
+				<option value="file5">github.com/hashicorp/mql/parser.go (93.6%)</option>
 				
 				<option value="file6">github.com/hashicorp/mql/stack.go (100.0%)</option>
 				
@@ -224,6 +224,16 @@ func defaultValidateConvert(columnName string, comparisonOp ComparisonOp, column
         if err != nil </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("%s: %q in %s: %w", op, *e.value, e.String(), ErrInvalidParameter)
         }</span>
+
+        <span class="cov8" title="1">opts, err := getOpts(opt...)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("%s: %w", op, err)
+        }</span>
+        <span class="cov8" title="1">if n, ok := opts.withTableColumnMap[columnName]; ok </span><span class="cov8" title="1">{
+                // override our column name with the mapped column name
+                columnName = n
+        }</span>
+
         <span class="cov8" title="1">if validator.typ == "time" </span><span class="cov8" title="1">{
                 columnName = fmt.Sprintf("%s::date", columnName)
         }</span>
@@ -251,9 +261,7 @@ const (
 func newLogicalOp(s string) (logicalOp, error) <span class="cov8" title="1">{
         const op = "newLogicalOp"
         switch logicalOp(s) </span>{
-        case
-                andOp,
-                orOp:<span class="cov8" title="1">
+        case andOp, orOp:<span class="cov8" title="1">
                 return logicalOp(s), nil</span>
         default:<span class="cov8" title="1">
                 return "", fmt.Errorf("%s: %w %q", op, ErrInvalidLogicalOp, s)</span>
@@ -758,9 +766,9 @@ func exprToWhereClause(e expr, fValidators map[string]validator, opt ...Option) 
                 if err != nil </span><span class="cov8" title="1">{
                         return nil, fmt.Errorf("%s: %w", op, err)
                 }</span>
-                <span class="cov8" title="1">switch </span>{
-                case opts.withValidateConvertColumn == v.column &amp;&amp; !isNil(opts.withValidateConvertFn):<span class="cov8" title="1">
-                        return opts.withValidateConvertFn(v.column, v.comparisonOp, v.value)</span>
+                <span class="cov8" title="1">switch validateConvertFn, ok := opts.withValidateConvertFns[v.column]; </span>{
+                case ok &amp;&amp; !isNil(validateConvertFn):<span class="cov8" title="1">
+                        return validateConvertFn(v.column, v.comparisonOp, v.value)</span>
                 default:<span class="cov8" title="1">
                         columnName := strings.ToLower(v.column)
                         if n, ok := opts.withColumnMap[columnName]; ok </span><span class="cov8" title="1">{
@@ -812,12 +820,12 @@ import (
 )
 
 type options struct {
-        withSkipWhitespace        bool
-        withColumnMap             map[string]string
-        withValidateConvertFn     ValidateConvertFunc
-        withValidateConvertColumn string
-        withIgnoredFields         []string
-        withPgPlaceholder         bool
+        withSkipWhitespace     bool
+        withColumnMap          map[string]string
+        withValidateConvertFns map[string]ValidateConvertFunc
+        withIgnoredFields      []string
+        withPgPlaceholder      bool
+        withTableColumnMap     map[string]string // map of model field names to their table.column name
 }
 
 // Option - how options are passed as args
@@ -825,7 +833,9 @@ type Option func(*options) error
 
 func getDefaultOptions() options <span class="cov8" title="1">{
         return options{
-                withColumnMap: make(map[string]string),
+                withColumnMap:          make(map[string]string),
+                withValidateConvertFns: make(map[string]ValidateConvertFunc),
+                withTableColumnMap:     make(map[string]string),
         }
 }</span>
 
@@ -848,8 +858,8 @@ func withSkipWhitespace() Option <span class="cov8" title="1">{
         }</span>
 }
 
-// WithColumnMap provides an optional map of columns from a column in the user
-// provided query to a column in the database model
+// WithColumnMap provides an optional map of columns from the user
+// provided query to a field in the given model
 func WithColumnMap(m map[string]string) Option <span class="cov8" title="1">{
         return func(o *options) error </span><span class="cov8" title="1">{
                 if !isNil(m) </span><span class="cov8" title="1">{
@@ -871,8 +881,10 @@ func WithConverter(fieldName string, fn ValidateConvertFunc) Option <span class=
         return func(o *options) error </span><span class="cov8" title="1">{
                 switch </span>{
                 case fieldName != "" &amp;&amp; !isNil(fn):<span class="cov8" title="1">
-                        o.withValidateConvertFn = fn
-                        o.withValidateConvertColumn = fieldName</span>
+                        if _, exists := o.withValidateConvertFns[fieldName]; exists </span><span class="cov8" title="1">{
+                                return fmt.Errorf("%s: duplicated convert: %w", op, ErrInvalidParameter)
+                        }</span>
+                        <span class="cov8" title="1">o.withValidateConvertFns[fieldName] = fn</span>
                 case fieldName == "" &amp;&amp; !isNil(fn):<span class="cov8" title="1">
                         return fmt.Errorf("%s: missing field name: %w", op, ErrInvalidParameter)</span>
                 case fieldName != "" &amp;&amp; isNil(fn):<span class="cov8" title="1">
@@ -901,6 +913,28 @@ func WithPgPlaceholders() Option <span class="cov8" title="1">{
                 o.withPgPlaceholder = true
                 return nil
         }</span>
+}
+
+// WithTableColumnMap provides an optional map of columns from the
+// model to the table.column name in the generated where clause
+//
+// For example, if you need to map the language field name to something
+// more complex in your SQL statement then you can use this map:
+//
+//        WithTableColumnMap(map[string]string{"language":"preferences-&gt;&gt;'language'"})
+//
+// In the example above we're mapping "language" field to a json field in
+// the "preferences" column. A user can say `language="blah"` and the
+// mql-created SQL where clause will contain `preferences-&gt;&gt;'language'="blah"`
+//
+// The field names in the keys to the map should always be lower case.
+func WithTableColumnMap(m map[string]string) Option <span class="cov8" title="1">{
+        return func(o *options) error </span><span class="cov8" title="1">{
+                if !isNil(m) </span><span class="cov8" title="1">{
+                        o.withTableColumnMap = m
+                }</span>
+                <span class="cov8" title="1">return nil</span>
+        }
 }
 </pre>
 		
@@ -969,7 +1003,15 @@ func (p *parser) parseLogicalExpr() (*logicalExpr, error) <span class="cov8" tit
                                 return nil, fmt.Errorf("%s: %w before right side expression in: %q", op, ErrMissingLogicalOp, p.raw)</span>
                         // finally, assign the right expr
                         case logicExpr.rightExpr == nil:<span class="cov8" title="1">
-                                logicExpr.rightExpr = e.leftExpr
+                                if e.rightExpr != nil </span><span class="cov8" title="1">{
+                                        // if e.rightExpr isn't nil, then we've got a complete
+                                        // expr (left + op + right) and we need to assign this to
+                                        // our rightExpr
+                                        logicExpr.rightExpr = e
+                                        break TkLoop</span>
+                                }
+                                // otherwise, we need to assign the left side of e
+                                <span class="cov8" title="1">logicExpr.rightExpr = e.leftExpr
                                 break TkLoop</span>
                         }
                 case stringToken, numberToken, symbolToken:<span class="cov8" title="1">

@@ -105,6 +105,17 @@ func WithPgPlaceholders() Option {
 
 // WithTableColumnMap provides an optional map of columns from the
 // model to the table.column name in the generated where clause
+//
+// For example, if you need to map the language field name to something
+// more complex in your SQL statement then you can use this map:
+//
+//	WithTableColumnMap(map[string]string{"language":"preferences->>'language'"})
+//
+// In the example above we're mapping "language" field to a json field in
+// the "preferences" column. A user can say `language="blah"` and the
+// mql-created SQL where clause will contain `preferences->>'language'="blah"`
+//
+// The field names in the keys to the map should always be lower case.
 func WithTableColumnMap(m map[string]string) Option {
 	return func(o *options) error {
 		if !isNil(m) {
