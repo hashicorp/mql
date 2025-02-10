@@ -128,4 +128,13 @@ func Test_defaultValidateConvert(t *testing.T) {
 		assert.ErrorIs(t, err, ErrInvalidParameter)
 		assert.ErrorContains(t, err, "missing validator type")
 	})
+	t.Run("success-with-table-override", func(t *testing.T) {
+		e, err := defaultValidateConvert("name", EqualOp, pointer("alice"), validator{fn: fValidators["name"].fn, typ: "default"},
+			WithTableColumnMap(map[string]string{"name": "users.name"}))
+		assert.Empty(t, err)
+		assert.NotEmpty(t, e)
+		assert.Equal(t, "users.name=?", e.Condition, "condition")
+		assert.Len(t, e.Args, 1, "args")
+		assert.Equal(t, "alice", e.Args[0], "args[0]")
+	})
 }

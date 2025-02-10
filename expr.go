@@ -103,6 +103,16 @@ func defaultValidateConvert(columnName string, comparisonOp ComparisonOp, column
 	if err != nil {
 		return nil, fmt.Errorf("%s: %q in %s: %w", op, *e.value, e.String(), ErrInvalidParameter)
 	}
+
+	opts, err := getOpts(opt...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	if n, ok := opts.withTableColumnMap[columnName]; ok {
+		// override our column name with the mapped column name
+		columnName = n
+	}
+
 	if validator.typ == "time" {
 		columnName = fmt.Sprintf("%s::date", columnName)
 	}

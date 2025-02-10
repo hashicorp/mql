@@ -106,7 +106,7 @@ Example:
 
   
 
-### Mapping column names
+### Mapping field names
 
 You can also provide an optional map from query column identifiers to model
 field names via
@@ -118,7 +118,7 @@ Example
 usage:
 
 ``` Go
-type User {
+type User struct {
     FullName string
 }
 
@@ -135,6 +135,38 @@ w, err := mql.Parse(
 if err != nil {
     return nil, err
 }
+```
+
+### Mapping column names
+You can also provide an optional map from model field names to output column
+names via
+[WithTableColumnMap(...)](https://pkg.go.dev/github.com/hashicorp/mql#WithTableColumnMap)
+if needed.
+
+Example
+[WithTableColumnMap(...)](https://pkg.go.dev/github.com/hashicorp/mql#WithTableColumnMap)
+usage:
+
+``` Go
+type User struct {
+    FullName string
+}
+
+// map the field name FullName to column "u.fullname"
+tableColumnMap := map[string]string{
+    "fullname": "u.fullname",
+}
+
+w, err := mql.Parse(
+    `FullName="alice"`,
+    User{}, 
+    mql.WithTableColumnMap(tableColumnMap))
+
+if err != nil {
+    return nil, err
+}
+
+fmt.Print(w.Condition) // prints u.fullname=?
 ```
 
 ### Ignoring fields
