@@ -86,6 +86,19 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
+			name:  "success-handle-extra-space-before-rparen",
+			query: "(name = `alice` and email=`eve@example.com`   	) or age > 21",
+			model: &testModel{},
+			want: &mql.WhereClause{
+				Condition: "((name=? and email=?) or age>?)",
+				Args: []any{
+					"alice",
+					"eve@example.com",
+					21,
+				},
+			},
+		},
+		{
 			name:  "null-string",
 			query: "name=\"null\"",
 			model: &testModel{},
