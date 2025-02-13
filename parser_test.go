@@ -350,3 +350,67 @@ func Test_scan(t *testing.T) {
 		assert.ErrorContains(t, err, "missing ConvertToSqlFunc: invalid parameter")
 	})
 }
+
+func Test_removeSpacesBeforeParen(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		raw  string
+		want string
+	}{
+		{
+			name: "empty",
+			raw:  "",
+			want: "",
+		},
+		{
+			name: "no-spaces-before-paren",
+			raw:  "name=\"alice\"",
+			want: "name=\"alice\"",
+		},
+		{
+			name: "spaces-before-paren",
+			raw:  "name = \"alice\" )",
+			want: "name = \"alice\")",
+		},
+		{
+			name: "multiple-spaces-before-paren",
+			raw:  "name = \"alice\"    )",
+			want: "name = \"alice\")",
+		},
+		{
+			name: "spaces-before-multiple-parens",
+			raw:  "name = \"alice\" ) and ( age > 21 )",
+			want: "name = \"alice\") and ( age > 21)",
+		},
+		{
+			name: "no-spaces-to-remove",
+			raw:  "(name=\"alice\")",
+			want: "(name=\"alice\")",
+		},
+		{
+			name: "spaces-only",
+			raw:  "   )",
+			want: ")",
+		},
+		{
+			name: "spaces-before-and-after-paren",
+			raw:  "name = \"alice\" ) ",
+			want: "name = \"alice\") ",
+		},
+		{
+			name: "spaces-before-paren-in-middle",
+			raw:  "name = \"alice\" ) and ( age > 21 )",
+			want: "name = \"alice\") and ( age > 21)",
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			got := removeSpacesBeforeParen(tc.raw)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}

@@ -5,6 +5,8 @@ package mql
 
 import (
 	"fmt"
+	"strings"
+	"unicode"
 )
 
 type parser struct {
@@ -15,8 +17,15 @@ type parser struct {
 }
 
 func newParser(s string) *parser {
+	var fixedUp string
+	{
+		// remove any leading/trailing whitespace
+		fixedUp = strings.TrimSpace(s)
+		// remove any leading space before a right parenthesis (issue #42)
+		fixedUp = removeSpacesBeforeParen(fixedUp)
+	}
 	return &parser{
-		l:   newLexer(s),
+		l:   newLexer(fixedUp),
 		raw: s,
 	}
 }
@@ -228,4 +237,33 @@ func (p *parser) scan(opt ...Option) error {
 	}
 
 	return nil
+}
+
+func removeSpacesBeforeParen(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	var result strings.Builder
+	runes := []rune(s)
+	i := 0
+	for i < len(runes) {
+		if unicode.IsSpace(runes[i]) {
+			start := i
+			for i < len(runes) && unicode.IsSpace(runes[i]) {
+				i++
+			}
+			if i < len(runes) && runes[i] == ')' {
+				result.WriteRune(')')
+				i++ // move past the ')'
+			} else {
+				// Otherwise, the whitespace is not followed by ')', so keep it
+				result.WriteString(string(runes[start:i]))
+			}
+		} else {
+			// Normal character, just append to result
+			result.WriteRune(runes[i])
+			i++
+		}
+	}
+	return result.String()
 }

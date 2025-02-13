@@ -65,7 +65,7 @@
 				
 				<option value="file4">github.com/hashicorp/mql/options.go (100.0%)</option>
 				
-				<option value="file5">github.com/hashicorp/mql/parser.go (93.6%)</option>
+				<option value="file5">github.com/hashicorp/mql/parser.go (93.9%)</option>
 				
 				<option value="file6">github.com/hashicorp/mql/stack.go (100.0%)</option>
 				
@@ -945,6 +945,8 @@ package mql
 
 import (
         "fmt"
+        "strings"
+        "unicode"
 )
 
 type parser struct {
@@ -955,11 +957,18 @@ type parser struct {
 }
 
 func newParser(s string) *parser <span class="cov8" title="1">{
-        return &amp;parser{
-                l:   newLexer(s),
+        var fixedUp string
+        </span><span class="cov8" title="1">{
+                // remove any leading/trailing whitespace
+                fixedUp = strings.TrimSpace(s)
+                // remove any leading space before a right parenthesis (issue #42)
+                fixedUp = removeSpacesBeforeParen(fixedUp)
+        }</span>
+        <span class="cov8" title="1">return &amp;parser{
+                l:   newLexer(fixedUp),
                 raw: s,
-        }
-}</span>
+        }</span>
+}
 
 func (p *parser) parse() (expr, error) <span class="cov8" title="1">{
         const op = "mql.(parser).parse"
@@ -1154,7 +1163,7 @@ func (p *parser) scan(opt ...Option) error <span class="cov8" title="1">{
 
         <span class="cov8" title="1">if opts.withSkipWhitespace </span><span class="cov8" title="1">{
                 for p.currentToken.Type == whitespaceToken </span><span class="cov8" title="1">{
-                        if p.currentToken, err = p.l.nextToken(); err != nil </span><span class="cov8" title="1">{
+                        if p.currentToken, err = p.l.nextToken(); err != nil </span><span class="cov0" title="0">{
                                 return fmt.Errorf("%s: %w", op, err)
                         }</span>
                 }
@@ -1168,6 +1177,35 @@ func (p *parser) scan(opt ...Option) error <span class="cov8" title="1">{
         }
 
         <span class="cov8" title="1">return nil</span>
+}
+
+func removeSpacesBeforeParen(s string) string <span class="cov8" title="1">{
+        if len(s) == 0 </span><span class="cov8" title="1">{
+                return s
+        }</span>
+        <span class="cov8" title="1">var result strings.Builder
+        runes := []rune(s)
+        i := 0
+        for i &lt; len(runes) </span><span class="cov8" title="1">{
+                if unicode.IsSpace(runes[i]) </span><span class="cov8" title="1">{
+                        start := i
+                        for i &lt; len(runes) &amp;&amp; unicode.IsSpace(runes[i]) </span><span class="cov8" title="1">{
+                                i++
+                        }</span>
+                        <span class="cov8" title="1">if i &lt; len(runes) &amp;&amp; runes[i] == ')' </span><span class="cov8" title="1">{
+                                result.WriteRune(')')
+                                i++ // move past the ')'
+                        }</span> else<span class="cov8" title="1"> {
+                                // Otherwise, the whitespace is not followed by ')', so keep it
+                                result.WriteString(string(runes[start:i]))
+                        }</span>
+                } else<span class="cov8" title="1"> {
+                        // Normal character, just append to result
+                        result.WriteRune(runes[i])
+                        i++
+                }</span>
+        }
+        <span class="cov8" title="1">return result.String()</span>
 }
 </pre>
 		
