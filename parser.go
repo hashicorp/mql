@@ -5,6 +5,8 @@ package mql
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 )
 
 type parser struct {
@@ -15,8 +17,16 @@ type parser struct {
 }
 
 func newParser(s string) *parser {
+	var fixedUp string
+	{
+		// remove any leading/trailing whitespace
+		fixedUp = strings.TrimSpace(s)
+		// remove any leading space before a right parenthesis (issue #42)
+		re := regexp.MustCompile(`\s+\)`)
+		fixedUp = re.ReplaceAllString(fixedUp, ")")
+	}
 	return &parser{
-		l:   newLexer(s),
+		l:   newLexer(fixedUp),
 		raw: s,
 	}
 }

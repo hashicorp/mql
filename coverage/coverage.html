@@ -65,7 +65,7 @@
 				
 				<option value="file4">github.com/hashicorp/mql/options.go (100.0%)</option>
 				
-				<option value="file5">github.com/hashicorp/mql/parser.go (93.6%)</option>
+				<option value="file5">github.com/hashicorp/mql/parser.go (92.9%)</option>
 				
 				<option value="file6">github.com/hashicorp/mql/stack.go (100.0%)</option>
 				
@@ -945,6 +945,8 @@ package mql
 
 import (
         "fmt"
+        "regexp"
+        "strings"
 )
 
 type parser struct {
@@ -955,11 +957,19 @@ type parser struct {
 }
 
 func newParser(s string) *parser <span class="cov8" title="1">{
-        return &amp;parser{
-                l:   newLexer(s),
+        var fixedUp string
+        </span><span class="cov8" title="1">{
+                // remove any leading/trailing whitespace
+                fixedUp = strings.TrimSpace(s)
+                // remove any leading space before a right parenthesis (issue #42)
+                re := regexp.MustCompile(`\s+\)`)
+                fixedUp = re.ReplaceAllString(fixedUp, ")")
+        }</span>
+        <span class="cov8" title="1">return &amp;parser{
+                l:   newLexer(fixedUp),
                 raw: s,
-        }
-}</span>
+        }</span>
+}
 
 func (p *parser) parse() (expr, error) <span class="cov8" title="1">{
         const op = "mql.(parser).parse"
@@ -1154,7 +1164,7 @@ func (p *parser) scan(opt ...Option) error <span class="cov8" title="1">{
 
         <span class="cov8" title="1">if opts.withSkipWhitespace </span><span class="cov8" title="1">{
                 for p.currentToken.Type == whitespaceToken </span><span class="cov8" title="1">{
-                        if p.currentToken, err = p.l.nextToken(); err != nil </span><span class="cov8" title="1">{
+                        if p.currentToken, err = p.l.nextToken(); err != nil </span><span class="cov0" title="0">{
                                 return fmt.Errorf("%s: %w", op, err)
                         }</span>
                 }
