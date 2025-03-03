@@ -10,6 +10,7 @@ import (
 type options struct {
 	withSkipWhitespace     bool
 	withColumnMap          map[string]string
+	withColumnFieldTag     string
 	withValidateConvertFns map[string]ValidateConvertFunc
 	withIgnoredFields      []string
 	withPgPlaceholder      bool
@@ -53,6 +54,19 @@ func WithColumnMap(m map[string]string) Option {
 		if !isNil(m) {
 			o.withColumnMap = m
 		}
+		return nil
+	}
+}
+
+// Add the new option function
+// WithColumnFieldTag provides an option to use a specific struct tag for field mapping
+// If a field has this tag, the tag value will be used instead of the field name
+func WithColumnFieldTag(tagName string) Option {
+	return func(o *options) error {
+		if tagName == "" {
+			return fmt.Errorf("mql.WithColumnFieldTag: empty tag name: %w", ErrInvalidParameter)
+		}
+		o.withColumnFieldTag = tagName
 		return nil
 	}
 }

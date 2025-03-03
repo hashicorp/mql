@@ -44,11 +44,32 @@ func fieldValidators(model reflect.Value, opt ...Option) (map[string]validator, 
 
 	fValidators := make(map[string]validator)
 	for i := 0; i < m.NumField(); i++ {
-		if slices.Contains(opts.withIgnoredFields, m.Type().Field(i).Name) {
+		field := m.Type().Field(i)
+		if slices.Contains(opts.withIgnoredFields, field.Name) {
 			continue
 		}
 
-		fName := strings.ToLower(m.Type().Field(i).Name)
+		// Determine field name to use for mapping
+		// First check if we have a tag specified and if the field has that tag
+		fName := ""
+		if opts.withColumnFieldTag != "" {
+			// Get the tag value if it exists
+			tagValue := field.Tag.Get(opts.withColumnFieldTag)
+			if tagValue != "" {
+				// Use tag value, removing any additional information after the first comma
+				// This handles tags like `json:"name,omitempty"`
+				parts := strings.SplitN(tagValue, ",", 2)
+				fName = parts[0]
+			}
+		}
+
+		// If no tag was found or specified, fall back to the field name
+		if fName == "" {
+			fName = strings.ToLower(field.Name)
+		} else {
+			fName = strings.ToLower(fName)
+		}
+
 		// get a string val of the field type, then strip any leading '*' so we
 		// can simplify the switch below when dealing with types like *int and int.
 		fType := strings.TrimPrefix(m.Type().Field(i).Type.String(), "*")
