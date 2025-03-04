@@ -345,16 +345,14 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
-			name:  "success-with-column-field-tag",
-			query: "name=\"alice\" and email_address=\"eve@example.com\"",
+			name:  "err-with-column-field-tag",
+			query: "name=\"alice\" and email=\"eve@example.com\"",
 			model: testModel{},
 			opts: []mql.Option{
 				mql.WithColumnFieldTag("column"),
 			},
-			want: &mql.WhereClause{
-				Condition: "(name=? and email_address=?)",
-				Args:      []any{"alice", "eve@example.com"},
-			},
+			wantErrIs:       mql.ErrInvalidColumn,
+			wantErrContains: `invalid column "email"`,
 		},
 	}
 	for _, tc := range tests {
