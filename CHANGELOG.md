@@ -5,6 +5,7 @@ Canonical reference for changes, improvements, and bugfixes for mql.
 ## Next
 * fix (parser): fix issue #42 related to WS before rparen in [[PR](https://github.com/hashicorp/mql/pull/47)]
 * feat: add support for table column mapping by @dlclark in [[PR](https://github.com/hashicorp/mql/pull/45)]
+* feat: add support for table column name from struct tags @terminalfi in [[PR](https://github.com/hashicorp/mql/pull/50)]
 
 ## 0.1.4 (2024/05/14)
 
@@ -21,7 +22,7 @@ Canonical reference for changes, improvements, and bugfixes for mql.
 * chore: add github action to check diffs on generated bits ([PR](https://github.com/hashicorp/mql/pull/32))
 * chore: add race checker to "go test" in github action ([PR](https://github.com/hashicorp/mql/pull/31))
 * chore: add govulncheck to github actions ([PR](https://github.com/hashicorp/mql/pull/30))
-* update go matrix in CI: remove 1.18 and add 1.21 ([PR](https://github.com/hashicorp/mql/pull/30)) 
+* update go matrix in CI: remove 1.18 and add 1.21 ([PR](https://github.com/hashicorp/mql/pull/30))
 
 ## 0.1.2 (2023/09/18)
 

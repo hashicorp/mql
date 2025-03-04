@@ -23,6 +23,7 @@ type Option func(*options) error
 func getDefaultOptions() options {
 	return options{
 		withColumnMap:          make(map[string]string),
+		withColumnFieldTag:     "",
 		withValidateConvertFns: make(map[string]ValidateConvertFunc),
 		withTableColumnMap:     make(map[string]string),
 	}
@@ -30,7 +31,6 @@ func getDefaultOptions() options {
 
 func getOpts(opt ...Option) (options, error) {
 	opts := getDefaultOptions()
-
 	for _, o := range opt {
 		if err := o(&opts); err != nil {
 			return opts, err
@@ -58,8 +58,7 @@ func WithColumnMap(m map[string]string) Option {
 	}
 }
 
-// Add the new option function
-// WithColumnFieldTag provides an option to use a specific struct tag for field mapping
+// WithColumnFieldTag provides an optional struct tag to use for field mapping
 // If a field has this tag, the tag value will be used instead of the field name
 func WithColumnFieldTag(tagName string) Option {
 	return func(o *options) error {
