@@ -5,6 +5,8 @@ package mql_test
 
 import (
 	"database/sql"
+	"fmt"
+	"io"
 	"strings"
 	"testing"
 	"time"
@@ -134,6 +136,190 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
+			name:            "err-leftExpr-without-op",
+			query:           "age (name=\"alice\")",
+			model:           testModel{},
+			wantErrIs:       mql.ErrUnexpectedOpeningParen,
+			wantErrContains: `unexpected opening paren in: "age (name=\"alice\")"`,
+		},
+		{
+			name:            "err-int-model",
+			query:           "name=\"alice\"",
+			model:           1,
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: "model must be a struct or a pointer to a struct",
+		},
+		{
+			name:            "err-*int-model",
+			query:           "name=\"alice\"",
+			model:           pointer(1),
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: "model must be a struct or a pointer to a struct",
+		},
+		{
+			name:  "err-interface-nil-pointer-model",
+			query: "name=\"alice\"",
+			model: func() any {
+				var r io.Reader
+				return r
+			}(),
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: "missing model: invalid parameter",
+		},
+		{
+			name:  "time",
+			query: "created_at=\"2023-01-02\"",
+			model: testModel{},
+			want: &mql.WhereClause{
+				Condition: "created_at::date=?",
+				Args:      []any{"2023-01-02"},
+			},
+		},
+		{
+			name:  "success-with-column-map",
+			query: "custom_name=\"alice\"",
+			model: testModel{},
+			opts:  []mql.Option{mql.WithColumnMap(map[string]string{"custom_name": "name"})},
+			want: &mql.WhereClause{
+				Condition: "name=?",
+				Args:      []any{"alice"},
+			},
+		},
+		{
+			name:  "err-WithConverter-missing-field-name",
+			query: "name=\"alice\"",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithConverter(
+					"",
+					func(columnName string, comparisonOp mql.ComparisonOp, value *string) (*mql.WhereClause, error) {
+						return &mql.WhereClause{Condition: "name=?", Args: []any{"alice"}}, nil
+					},
+				),
+			},
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: "missing field name: invalid parameter",
+		},
+		{
+			name:  "err-WithConverter-duplicated-converter",
+			query: "name=\"alice\" and email=\"eve@example.com\"",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithConverter(
+					"name",
+					func(columnName string, comparisonOp mql.ComparisonOp, value *string) (*mql.WhereClause, error) {
+						return &mql.WhereClause{Condition: "name=?", Args: []any{"alice"}}, nil
+					},
+				),
+				mql.WithConverter(
+					"email",
+					func(columnName string, comparisonOp mql.ComparisonOp, value *string) (*mql.WhereClause, error) {
+						return &mql.WhereClause{Condition: "email=?", Args: []any{"eve@example.com"}}, nil
+					},
+				),
+				mql.WithConverter(
+					"name",
+					func(columnName string, comparisonOp mql.ComparisonOp, value *string) (*mql.WhereClause, error) {
+						return &mql.WhereClause{Condition: "duplicated-Converter name=?", Args: []any{"alice"}}, nil
+					},
+				),
+			},
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: "duplicated convert: invalid parameter",
+		},
+		{
+			name:  "success-WithConverter",
+			query: "(name = \"alice\" and email=\"eve@example.com\") or age > 21",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithConverter(
+					"name",
+					func(columnName string, comparisonOp mql.ComparisonOp, value *string) (*mql.WhereClause, error) {
+						return &mql.WhereClause{
+							// intentionally not the correct condition and
+							// args, but this makes verifying the test
+							// easier.
+							Condition: fmt.Sprintf("success-WithConverter: %s%s?", columnName, comparisonOp),
+							Args:      []any{"success-WithConverter: alice"},
+						}, nil
+					},
+				),
+			},
+			want: &mql.WhereClause{
+				Condition: "((success-WithConverter: name=? and email=?) or age>?)",
+				Args:      []any{"success-WithConverter: alice", "eve@example.com", 21},
+			},
+		},
+		{
+			name:  "success-WithMultiConverters",
+			query: "(name = \"alice\" and email=\"eve@example.com\") or age > 21",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithConverter(
+					"name",
+					func(columnName string, comparisonOp mql.ComparisonOp, value *string) (*mql.WhereClause, error) {
+						return &mql.WhereClause{
+							// intentionally not the correct condition and
+							// args, but this makes verifying the test
+							// easier.
+							Condition: fmt.Sprintf("success-WithConverter: %s%s?", columnName, comparisonOp),
+							Args:      []any{"success-WithConverter: alice"},
+						}, nil
+					},
+				),
+				mql.WithConverter(
+					"email",
+					func(columnName string, comparisonOp mql.ComparisonOp, value *string) (*mql.WhereClause, error) {
+						return &mql.WhereClause{
+							// intentionally not the correct condition and
+							// args, but this makes verifying the test
+							// easier.
+							Condition: fmt.Sprintf("success-WithConverter: %s%s?", columnName, comparisonOp),
+							Args:      []any{"success-WithConverter: email=\"eva@example.com\""},
+						}, nil
+					},
+				),
+			},
+			want: &mql.WhereClause{
+				Condition: "((success-WithConverter: name=? and success-WithConverter: email=?) or age>?)",
+				Args:      []any{"success-WithConverter: alice", "success-WithConverter: email=\"eva@example.com\"", 21},
+			},
+		},
+		{
+			name:            "err-ignored-field-used-in-query",
+			query:           "email=\"eve@example.com\" or name=\"alice\"",
+			model:           &testModel{},
+			opts:            []mql.Option{mql.WithIgnoredFields("Name")},
+			wantErrContains: `mql.exprToWhereClause: invalid right expr: mql.exprToWhereClause: invalid column "name"`,
+		},
+		{
+			name:            "err-missing-query",
+			query:           "",
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: "missing query: invalid parameter",
+		},
+		{
+			name:            "err-model",
+			query:           "name=alice",
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: "missing model: invalid parameter",
+		},
+		{
+			name:            "err-invalid-query",
+			query:           "name!alice",
+			model:           testModel{},
+			wantErrIs:       mql.ErrInvalidNotEqual,
+			wantErrContains: `invalid "!=" token, got "!a"`,
+		},
+		{
+			name:            "err-invalid-WithConverter-opt",
+			query:           "name=\"alice\"",
+			model:           testModel{},
+			opts:            []mql.Option{mql.WithConverter("TestColumn", nil)},
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: "missing ConvertToSqlFunc: invalid parameter",
+		},
+		{
 			name:  "success-with-table-column-map",
 			query: "custom_name=\"alice\"",
 			model: testModel{},
@@ -146,18 +332,30 @@ func TestParse(t *testing.T) {
 				Args:      []any{"alice"},
 			},
 		},
-		// {
-		// 	name:  "success-with-column-field-tag",
-		// 	query: "name=\"alice\" and email_address=\"eve@example.com\"",
-		// 	model: testModel{},
-		// 	opts: []mql.Option{
-		// 		mql.WithColumnFieldTag("column"),
-		// 	},
-		// 	want: &mql.WhereClause{
-		// 		Condition: "(name=? and email_address=?)",
-		// 		Args:      []any{"alice", "eve@example.com"},
-		// 	},
-		// },
+		{
+			name:  "success-with-column-field-tag",
+			query: "name=\"alice\" and email_address=\"eve@example.com\"",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithColumnFieldTag("column"),
+			},
+			want: &mql.WhereClause{
+				Condition: "(name=? and email_address=?)",
+				Args:      []any{"alice", "eve@example.com"},
+			},
+		},
+		{
+			name:  "success-with-column-field-tag",
+			query: "name=\"alice\" and email_address=\"eve@example.com\"",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithColumnFieldTag("column"),
+			},
+			want: &mql.WhereClause{
+				Condition: "(name=? and email_address=?)",
+				Args:      []any{"alice", "eve@example.com"},
+			},
+		},
 	}
 	for _, tc := range tests {
 		tc := tc

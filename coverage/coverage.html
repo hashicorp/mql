@@ -57,21 +57,21 @@
 				
 				<option value="file0">github.com/hashicorp/mql/common.go (100.0%)</option>
 				
-				<option value="file1">github.com/hashicorp/mql/expr.go (95.8%)</option>
+				<option value="file1">github.com/hashicorp/mql/expr.go (97.9%)</option>
 				
 				<option value="file2">github.com/hashicorp/mql/lex.go (100.0%)</option>
 				
-				<option value="file3">github.com/hashicorp/mql/mql.go (80.0%)</option>
+				<option value="file3">github.com/hashicorp/mql/mql.go (98.3%)</option>
 				
-				<option value="file4">github.com/hashicorp/mql/options.go (64.9%)</option>
+				<option value="file4">github.com/hashicorp/mql/options.go (97.3%)</option>
 				
-				<option value="file5">github.com/hashicorp/mql/parser.go (92.2%)</option>
+				<option value="file5">github.com/hashicorp/mql/parser.go (93.9%)</option>
 				
 				<option value="file6">github.com/hashicorp/mql/stack.go (100.0%)</option>
 				
 				<option value="file7">github.com/hashicorp/mql/token.go (100.0%)</option>
 				
-				<option value="file8">github.com/hashicorp/mql/validate.go (78.6%)</option>
+				<option value="file8">github.com/hashicorp/mql/validate.go (97.6%)</option>
 				
 				</select>
 			</div>
@@ -234,7 +234,7 @@ func defaultValidateConvert(columnName string, comparisonOp ComparisonOp, column
                 columnName = n
         }</span>
 
-        <span class="cov8" title="1">if validator.typ == "time" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if validator.typ == "time" </span><span class="cov8" title="1">{
                 columnName = fmt.Sprintf("%s::date", columnName)
         }</span>
         <span class="cov8" title="1">switch e.comparisonOp </span>{
@@ -718,9 +718,9 @@ type WhereClause struct {
 func Parse(query string, model any, opt ...Option) (*WhereClause, error) <span class="cov8" title="1">{
         const op = "mql.Parse"
         switch </span>{
-        case query == "":<span class="cov0" title="0">
+        case query == "":<span class="cov8" title="1">
                 return nil, fmt.Errorf("%s: missing query: %w", op, ErrInvalidParameter)</span>
-        case isNil(model):<span class="cov0" title="0">
+        case isNil(model):<span class="cov8" title="1">
                 return nil, fmt.Errorf("%s: missing model: %w", op, ErrInvalidParameter)</span>
         }
         <span class="cov8" title="1">p := newParser(query)
@@ -729,11 +729,11 @@ func Parse(query string, model any, opt ...Option) (*WhereClause, error) <span c
                 return nil, fmt.Errorf("%s: %w", op, err)
         }</span>
         <span class="cov8" title="1">fValidators, err := fieldValidators(reflect.ValueOf(model), opt...)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("%s: %w", op, err)
         }</span>
         <span class="cov8" title="1">e, err := exprToWhereClause(expr, fValidators, opt...)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("%s: %w", op, err)
         }</span>
         <span class="cov8" title="1">opts, err := getOpts(opt...)
@@ -767,14 +767,14 @@ func exprToWhereClause(e expr, fValidators map[string]validator, opt ...Option) 
                         return nil, fmt.Errorf("%s: %w", op, err)
                 }</span>
                 <span class="cov8" title="1">switch validateConvertFn, ok := opts.withValidateConvertFns[v.column]; </span>{
-                case ok &amp;&amp; !isNil(validateConvertFn):<span class="cov0" title="0">
+                case ok &amp;&amp; !isNil(validateConvertFn):<span class="cov8" title="1">
                         return validateConvertFn(v.column, v.comparisonOp, v.value)</span>
                 default:<span class="cov8" title="1">
                         var ok bool
                         var validator validator
                         columnName := v.column
                         switch </span>{
-                        case opts.withColumnFieldTag != "":<span class="cov0" title="0">
+                        case opts.withColumnFieldTag != "":<span class="cov8" title="1">
                                 validator, ok = fValidators[columnName]</span>
                         default:<span class="cov8" title="1">
                                 columnName = strings.ToLower(v.column)
@@ -785,13 +785,13 @@ func exprToWhereClause(e expr, fValidators map[string]validator, opt ...Option) 
                                 <span class="cov8" title="1">validator, ok = fValidators[strings.ToLower(strings.ReplaceAll(columnName, "_", ""))]</span>
                         }
 
-                        <span class="cov8" title="1">if !ok </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">if !ok </span><span class="cov8" title="1">{
                                 cols := make([]string, len(fValidators))
-                                for c := range fValidators </span><span class="cov0" title="0">{
+                                for c := range fValidators </span><span class="cov8" title="1">{
                                         cols = append(cols, c)
                                 }</span>
 
-                                <span class="cov0" title="0">return nil, fmt.Errorf("%s: %w %q %s", op, ErrInvalidColumn, columnName, cols)</span>
+                                <span class="cov8" title="1">return nil, fmt.Errorf("%s: %w %q %s", op, ErrInvalidColumn, columnName, cols)</span>
                         }
 
                         <span class="cov8" title="1">w, err := defaultValidateConvert(columnName, v.comparisonOp, v.value, validator, opt...)
@@ -809,7 +809,7 @@ func exprToWhereClause(e expr, fValidators map[string]validator, opt ...Option) 
                         return nil, fmt.Errorf("%s: %w that stated with left expr condition: %q args: %q", op, ErrMissingLogicalOp, left.Condition, left.Args)
                 }</span>
                 <span class="cov8" title="1">right, err := exprToWhereClause(v.rightExpr, fValidators, opt...)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov8" title="1">{
                         return nil, fmt.Errorf("%s: invalid right expr: %w", op, err)
                 }</span>
                 <span class="cov8" title="1">return &amp;WhereClause{
@@ -884,12 +884,12 @@ func WithColumnMap(m map[string]string) Option <span class="cov8" title="1">{
 
 // WithColumnFieldTag provides an optional struct tag to use for field mapping
 // If a field has this tag, the tag value will be used instead of the field name
-func WithColumnFieldTag(tagName string) Option <span class="cov0" title="0">{
-        return func(o *options) error </span><span class="cov0" title="0">{
+func WithColumnFieldTag(tagName string) Option <span class="cov8" title="1">{
+        return func(o *options) error </span><span class="cov8" title="1">{
                 if tagName == "" </span><span class="cov0" title="0">{
                         return fmt.Errorf("mql.WithColumnFieldTag: empty tag name: %w", ErrInvalidParameter)
                 }</span>
-                <span class="cov0" title="0">o.withColumnFieldTag = tagName
+                <span class="cov8" title="1">o.withColumnFieldTag = tagName
                 return nil</span>
         }
 }
@@ -905,24 +905,24 @@ func WithConverter(fieldName string, fn ValidateConvertFunc) Option <span class=
         const op = "mql.WithSqlConverter"
         return func(o *options) error </span><span class="cov8" title="1">{
                 switch </span>{
-                case fieldName != "" &amp;&amp; !isNil(fn):<span class="cov0" title="0">
-                        if _, exists := o.withValidateConvertFns[fieldName]; exists </span><span class="cov0" title="0">{
+                case fieldName != "" &amp;&amp; !isNil(fn):<span class="cov8" title="1">
+                        if _, exists := o.withValidateConvertFns[fieldName]; exists </span><span class="cov8" title="1">{
                                 return fmt.Errorf("%s: duplicated convert: %w", op, ErrInvalidParameter)
                         }</span>
-                        <span class="cov0" title="0">o.withValidateConvertFns[fieldName] = fn</span>
-                case fieldName == "" &amp;&amp; !isNil(fn):<span class="cov0" title="0">
+                        <span class="cov8" title="1">o.withValidateConvertFns[fieldName] = fn</span>
+                case fieldName == "" &amp;&amp; !isNil(fn):<span class="cov8" title="1">
                         return fmt.Errorf("%s: missing field name: %w", op, ErrInvalidParameter)</span>
                 case fieldName != "" &amp;&amp; isNil(fn):<span class="cov8" title="1">
                         return fmt.Errorf("%s: missing ConvertToSqlFunc: %w", op, ErrInvalidParameter)</span>
                 }
-                <span class="cov0" title="0">return nil</span>
+                <span class="cov8" title="1">return nil</span>
         }
 }
 
 // WithIgnoredFields provides an optional list of fields to ignore in the model
 // (your Go struct) when parsing. Note: Field names are case sensitive.
-func WithIgnoredFields(fieldName ...string) Option <span class="cov0" title="0">{
-        return func(o *options) error </span><span class="cov0" title="0">{
+func WithIgnoredFields(fieldName ...string) Option <span class="cov8" title="1">{
+        return func(o *options) error </span><span class="cov8" title="1">{
                 o.withIgnoredFields = fieldName
                 return nil
         }</span>
@@ -1113,7 +1113,7 @@ func (p *parser) parseComparisonExpr() (expr, error) <span class="cov8" title="1
                         switch </span>{
                         case cmpExpr.isComplete():<span class="cov8" title="1">
                                 return nil, fmt.Errorf("%s: %w after %s in: %q", op, ErrUnexpectedOpeningParen, cmpExpr, p.raw)</span>
-                        default:<span class="cov0" title="0">
+                        default:<span class="cov8" title="1">
                                 return nil, fmt.Errorf("%s: %w in: %q", op, ErrUnexpectedOpeningParen, p.raw)</span>
                         }
 
@@ -1159,7 +1159,7 @@ func (p *parser) parseComparisonExpr() (expr, error) <span class="cov8" title="1
                                 return nil, fmt.Errorf("%s: %w of %s == %s", op, ErrUnexpectedToken, p.currentToken.Type, p.currentToken.Value)</span>
                         }
                 }
-                <span class="cov8" title="1">if err := p.scan(); err != nil </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if err := p.scan(); err != nil </span><span class="cov8" title="1">{
                         return nil, fmt.Errorf("%s: %w", op, err)
                 }</span>
         }
@@ -1369,7 +1369,7 @@ func fieldValidators(model reflect.Value, opt ...Option) (map[string]validator, 
         case !model.IsValid():<span class="cov8" title="1">
                 return nil, fmt.Errorf("%s: missing model: %w", op, ErrInvalidParameter)</span>
         case (model.Kind() != reflect.Struct &amp;&amp; model.Kind() != reflect.Pointer),
-                model.Kind() == reflect.Pointer &amp;&amp; model.Elem().Kind() != reflect.Struct:<span class="cov0" title="0">
+                model.Kind() == reflect.Pointer &amp;&amp; model.Elem().Kind() != reflect.Struct:<span class="cov8" title="1">
                 return nil, fmt.Errorf("%s: model must be a struct or a pointer to a struct: %w", op, ErrInvalidParameter)</span>
         }
         <span class="cov8" title="1">var m reflect.Value = model
@@ -1378,26 +1378,26 @@ func fieldValidators(model reflect.Value, opt ...Option) (map[string]validator, 
         }</span>
 
         <span class="cov8" title="1">opts, err := getOpts(opt...)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("%s: %w", op, err)
         }</span>
 
         <span class="cov8" title="1">fValidators := make(map[string]validator)
         for i := 0; i &lt; m.NumField(); i++ </span><span class="cov8" title="1">{
                 field := m.Type().Field(i)
-                if slices.Contains(opts.withIgnoredFields, field.Name) </span><span class="cov0" title="0">{
+                if slices.Contains(opts.withIgnoredFields, field.Name) </span><span class="cov8" title="1">{
                         continue</span>
                 }
 
                 <span class="cov8" title="1">var fName string
                 switch </span>{
-                case opts.withColumnFieldTag != "":<span class="cov0" title="0">
+                case opts.withColumnFieldTag != "":<span class="cov8" title="1">
                         tagValue := field.Tag.Get(opts.withColumnFieldTag)
-                        if tagValue != "" </span><span class="cov0" title="0">{
+                        if tagValue != "" </span><span class="cov8" title="1">{
                                 parts := strings.SplitN(tagValue, ",", 2)
                                 fName = parts[0]
                         }</span>
-                        <span class="cov0" title="0">if fName == "" </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">if fName == "" </span><span class="cov0" title="0">{
                                 return nil, fmt.Errorf("%s: field %q has an invalid tag %q: %w", op, field.Name, opts.withColumnFieldTag, ErrInvalidParameter)
                         }</span>
                 default:<span class="cov8" title="1">
