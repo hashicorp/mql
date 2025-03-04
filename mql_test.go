@@ -378,6 +378,34 @@ func TestParse(t *testing.T) {
 			wantErrIs:       mql.ErrInvalidParameter,
 			wantErrContains: `has an invalid tag`,
 		},
+		{
+			name:  "err-mutually-exclusive-WithColumnFieldTag",
+			query: "name=\"alice\" and email=\"eve@example.com\"",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithColumnMap(map[string]string{
+					"name":  "Name",
+					"email": "Email",
+				}),
+				mql.WithColumnFieldTag("column"),
+			},
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: `cannot be used with WithColumnMap`,
+		},
+		{
+			name:  "err-mutually-exclusive-2-WithColumnFieldTa",
+			query: "name=\"alice\"",
+			model: testInvalidFieldTag{},
+			opts: []mql.Option{
+				mql.WithColumnFieldTag("column"),
+				mql.WithColumnMap(map[string]string{
+					"name":  "Name",
+					"email": "Email",
+				}),
+			},
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: `cannot be used with WithColumnFieldTag`,
+		},
 	}
 	for _, tc := range tests {
 		tc := tc

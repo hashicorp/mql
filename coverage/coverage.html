@@ -874,10 +874,14 @@ func withSkipWhitespace() Option <span class="cov8" title="1">{
 // WithColumnMap provides an optional map of columns from the user
 // provided query to a field in the given model
 func WithColumnMap(m map[string]string) Option <span class="cov8" title="1">{
+        const op = "mql.WithColumnMap"
         return func(o *options) error </span><span class="cov8" title="1">{
                 if !isNil(m) </span><span class="cov8" title="1">{
-                        o.withColumnMap = m
-                }</span>
+                        if o.withColumnFieldTag != "" </span><span class="cov8" title="1">{
+                                return fmt.Errorf("%s: cannot be used with WithColumnFieldTag: %w", op, ErrInvalidParameter)
+                        }</span>
+                        <span class="cov8" title="1">o.withColumnMap = m</span>
+                }
                 <span class="cov8" title="1">return nil</span>
         }
 }
@@ -885,9 +889,13 @@ func WithColumnMap(m map[string]string) Option <span class="cov8" title="1">{
 // WithColumnFieldTag provides an optional struct tag to use for field mapping
 // If a field has this tag, the tag value will be used instead of the field name
 func WithColumnFieldTag(tagName string) Option <span class="cov8" title="1">{
+        const op = "mql.WithColumnFieldTag"
         return func(o *options) error </span><span class="cov8" title="1">{
                 if tagName == "" </span><span class="cov8" title="1">{
-                        return fmt.Errorf("mql.WithColumnFieldTag: empty tag name: %w", ErrInvalidParameter)
+                        return fmt.Errorf("%s: empty tag name: %w", op, ErrInvalidParameter)
+                }</span>
+                <span class="cov8" title="1">if len(o.withColumnMap) &gt; 0 </span><span class="cov8" title="1">{
+                        return fmt.Errorf("%s: cannot be used with WithColumnMap: %w", op, ErrInvalidParameter)
                 }</span>
                 <span class="cov8" title="1">o.withColumnFieldTag = tagName
                 return nil</span>
