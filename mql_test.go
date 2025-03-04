@@ -29,6 +29,10 @@ type testModel struct {
 	UpdatedAt    time.Time      `column:"updated_at"`
 }
 
+type testInvalidFieldTag struct {
+	Name string `column:",omitempty"`
+}
+
 func TestParse(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -333,7 +337,7 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
-			name:  "success-with-column-field-tag",
+			name:  "success-WithColumnFieldTag",
 			query: "name=\"alice\" and email_address=\"eve@example.com\"",
 			model: testModel{},
 			opts: []mql.Option{
@@ -345,7 +349,7 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
-			name:  "err-with-column-field-tag",
+			name:  "err-WithColumnFieldTag",
 			query: "name=\"alice\" and email=\"eve@example.com\"",
 			model: testModel{},
 			opts: []mql.Option{
@@ -353,6 +357,26 @@ func TestParse(t *testing.T) {
 			},
 			wantErrIs:       mql.ErrInvalidColumn,
 			wantErrContains: `invalid column "email"`,
+		},
+		{
+			name:  "err-missing-tag-WithColumnFieldTag",
+			query: "name=\"alice\" and email=\"eve@example.com\"",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithColumnFieldTag(""),
+			},
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: `empty tag name`,
+		},
+		{
+			name:  "err-invalid-tag-WithColumnFieldTag",
+			query: "name=\"alice\"",
+			model: testInvalidFieldTag{},
+			opts: []mql.Option{
+				mql.WithColumnFieldTag("column"),
+			},
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: `has an invalid tag`,
 		},
 	}
 	for _, tc := range tests {

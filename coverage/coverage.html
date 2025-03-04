@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/hashicorp/mql/mql.go (98.3%)</option>
 				
-				<option value="file4">github.com/hashicorp/mql/options.go (97.3%)</option>
+				<option value="file4">github.com/hashicorp/mql/options.go (100.0%)</option>
 				
 				<option value="file5">github.com/hashicorp/mql/parser.go (93.9%)</option>
 				
@@ -71,7 +71,7 @@
 				
 				<option value="file7">github.com/hashicorp/mql/token.go (100.0%)</option>
 				
-				<option value="file8">github.com/hashicorp/mql/validate.go (97.6%)</option>
+				<option value="file8">github.com/hashicorp/mql/validate.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -886,7 +886,7 @@ func WithColumnMap(m map[string]string) Option <span class="cov8" title="1">{
 // If a field has this tag, the tag value will be used instead of the field name
 func WithColumnFieldTag(tagName string) Option <span class="cov8" title="1">{
         return func(o *options) error </span><span class="cov8" title="1">{
-                if tagName == "" </span><span class="cov0" title="0">{
+                if tagName == "" </span><span class="cov8" title="1">{
                         return fmt.Errorf("mql.WithColumnFieldTag: empty tag name: %w", ErrInvalidParameter)
                 }</span>
                 <span class="cov8" title="1">o.withColumnFieldTag = tagName
@@ -1397,7 +1397,7 @@ func fieldValidators(model reflect.Value, opt ...Option) (map[string]validator, 
                                 parts := strings.SplitN(tagValue, ",", 2)
                                 fName = parts[0]
                         }</span>
-                        <span class="cov8" title="1">if fName == "" </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">if fName == "" </span><span class="cov8" title="1">{
                                 return nil, fmt.Errorf("%s: field %q has an invalid tag %q: %w", op, field.Name, opts.withColumnFieldTag, ErrInvalidParameter)
                         }</span>
                 default:<span class="cov8" title="1">
