@@ -75,18 +75,30 @@ func exprToWhereClause(e expr, fValidators map[string]validator, opt ...Option) 
 		case ok && !isNil(validateConvertFn):
 			return validateConvertFn(v.column, v.comparisonOp, v.value)
 		default:
-			columnName := strings.ToLower(v.column)
-			if n, ok := opts.withColumnMap[columnName]; ok {
-				columnName = n
+			var ok bool
+			var validator validator
+			columnName := v.column
+			switch {
+			case opts.withColumnFieldTag != "":
+				validator, ok = fValidators[columnName]
+			default:
+				columnName = strings.ToLower(v.column)
+				if n, ok := opts.withColumnMap[columnName]; ok {
+					columnName = n
+				}
+
+				validator, ok = fValidators[strings.ToLower(strings.ReplaceAll(columnName, "_", ""))]
 			}
-			validator, ok := fValidators[strings.ToLower(strings.ReplaceAll(columnName, "_", ""))]
+
 			if !ok {
 				cols := make([]string, len(fValidators))
 				for c := range fValidators {
 					cols = append(cols, c)
 				}
+
 				return nil, fmt.Errorf("%s: %w %q %s", op, ErrInvalidColumn, columnName, cols)
 			}
+
 			w, err := defaultValidateConvert(columnName, v.comparisonOp, v.value, validator, opt...)
 			if err != nil {
 				return nil, fmt.Errorf("%s: %w", op, err)

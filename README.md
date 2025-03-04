@@ -104,7 +104,7 @@ Example:
 "Boston"` is evaluated as: `name="alice" and (age > 11 and region =
 "Boston")`
 
-  
+
 
 ### Mapping field names
 
@@ -129,7 +129,7 @@ columnMap := map[string]string{
 
 w, err := mql.Parse(
     `name="alice"`,
-    User{}, 
+    User{},
     mql.WithColumnMap(columnMap))
 
 if err != nil {
@@ -137,7 +137,35 @@ if err != nil {
 }
 ```
 
-### Mapping column names
+### Mapping via struct tags
+
+You can use struct tags to map model fields to column names by using
+[WithColumnFieldTag(...)](https://pkg.go.dev/github.com/hashicorp/mql#WithColumnFieldTag).
+This allows you to define the mapping in your struct definition rather than at query time.
+
+Example
+[WithColumnFieldTag(...)](https://pkg.go.dev/github.com/hashicorp/mql#WithColumnFieldTag)
+usage:
+
+``` Go
+type User struct {
+    Name string `db:"full_name"`
+}
+
+w, err := mql.Parse(
+    `Name="alice"`,
+    User{},
+    mql.WithColumnFieldTag("db"))
+
+if err != nil {
+    return nil, err
+}
+
+fmt.Print(w.Condition) // prints full_name=?
+```
+
+### Mapping output column names
+
 You can also provide an optional map from model field names to output column
 names via
 [WithTableColumnMap(...)](https://pkg.go.dev/github.com/hashicorp/mql#WithTableColumnMap)
@@ -159,7 +187,7 @@ tableColumnMap := map[string]string{
 
 w, err := mql.Parse(
     `FullName="alice"`,
-    User{}, 
+    User{},
     mql.WithTableColumnMap(tableColumnMap))
 
 if err != nil {
@@ -174,9 +202,9 @@ fmt.Print(w.Condition) // prints u.fullname=?
 If your model (Go struct) has fields you don't want users searching then you can
 optionally provide a list of columns to be ignored via [WithIgnoreFields(...)](https://pkg.go.dev/github.com/hashicorp/mql#WithIgnoreFields)
 
-Example 
+Example
 [WithIgnoreFields(...)](https://pkg.go.dev/github.com/hashicorp/mql#WithIgnoreFields)
-usage: 
+usage:
 
 ```Go
 type User {
@@ -189,7 +217,7 @@ type User {
 // of: created_at updated_at
 w, err := mql.Parse(
     `name="alice"`,
-    User{}, 
+    User{},
     mql.WithIgnoreFields("CreatedAt", "UpdatedAt"))
 
 if err != nil {
@@ -223,7 +251,7 @@ mySQLDateConverter := func(columnName string, comparisonOp mql.ComparisonOp, val
 
 w, err := mql.Parse(
     `name="alice" and created_at > "2023-06-18"`,
-    User{}, 
+    User{},
     mql.WithConverter("CreatedAt", mySqlDateConverter))
 
 if err != nil {

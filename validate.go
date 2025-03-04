@@ -44,11 +44,26 @@ func fieldValidators(model reflect.Value, opt ...Option) (map[string]validator, 
 
 	fValidators := make(map[string]validator)
 	for i := 0; i < m.NumField(); i++ {
-		if slices.Contains(opts.withIgnoredFields, m.Type().Field(i).Name) {
+		field := m.Type().Field(i)
+		if slices.Contains(opts.withIgnoredFields, field.Name) {
 			continue
 		}
 
-		fName := strings.ToLower(m.Type().Field(i).Name)
+		var fName string
+		switch {
+		case opts.withColumnFieldTag != "":
+			tagValue := field.Tag.Get(opts.withColumnFieldTag)
+			if tagValue != "" {
+				parts := strings.SplitN(tagValue, ",", 2)
+				fName = parts[0]
+			}
+			if fName == "" {
+				return nil, fmt.Errorf("%s: field %q has an invalid tag %q: %w", op, field.Name, opts.withColumnFieldTag, ErrInvalidParameter)
+			}
+		default:
+			fName = strings.ToLower(field.Name)
+		}
+
 		// get a string val of the field type, then strip any leading '*' so we
 		// can simplify the switch below when dealing with types like *int and int.
 		fType := strings.TrimPrefix(m.Type().Field(i).Type.String(), "*")
