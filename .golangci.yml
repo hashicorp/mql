@@ -1,0 +1,11 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
+linters:
+ enable:
+   - errcheck
+   - staticcheck
+   - gosimple
+ disable:
+   - unused
+output_format: colored-line-number
