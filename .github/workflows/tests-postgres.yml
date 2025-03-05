@@ -2,7 +2,9 @@ name: Go
 
 on:
   push:
-    branches: [build-test]
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   postgres:

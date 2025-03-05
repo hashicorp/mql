@@ -1,7 +1,9 @@
 name: Go fuzz test
 on:
   push:
-    branches: [ build-test ]
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 jobs:
   fuzz-lexer-test:
     name: Fuzz lexer test
