@@ -4,9 +4,7 @@ name: Go
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches: [build-test]
 
 jobs:
   build:
@@ -33,8 +31,11 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ matrix.go }}-${{ hashFiles('tests/go.mod') }}
 
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@08e2f20817b15149a52b5b3ebe7de50aff2ba8c5
+      - name: Download golangci-lint
+        run: make golangci-lint
+
+      - name: Lint
+        run: make lint
 
       - name: Build
         run: |
