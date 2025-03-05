@@ -34,7 +34,7 @@ jobs:
           key: ${{ runner.os }}-go-${{ matrix.go }}-${{ hashFiles('tests/go.mod') }}
 
       - name: Download golangci-lint
-        run: golangci-lint 
+        run: make golangci-lint 
 
       - name: Lint
         run: make lint
