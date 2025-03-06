@@ -69,7 +69,9 @@ copywrite:
 #lint: golangci-lint 
 
 .PHONY: install-staticcheck
-install-staticcheck: go install honnef.co/go/tools/cmd/staticcheck@latest
+install-staticcheck: 
+	go install honnef.co/go/tools/cmd/staticcheck@latest
 
 .PHONY: lint
-lint: staticcheck ./...
+lint: 
+	staticcheck ./...
