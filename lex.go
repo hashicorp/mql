@@ -68,7 +68,7 @@ func lexStartState(l *lexer) (lexStateFunc, error) {
 	// wait, if it's eof we're done
 	case r == eof:
 		l.emit(eofToken, "")
-		return lexEofState, nil
+		return lexEOFState, nil
 
 	// start with finding all tokens that can have a trailing "="
 	case r == '>':
@@ -328,10 +328,10 @@ func lexLesserState(l *lexer) (lexStateFunc, error) {
 }
 
 // lexEofState will emit an eofToken and returns right back to the lexEofState
-func lexEofState(l *lexer) (lexStateFunc, error) {
+func lexEOFState(l *lexer) (lexStateFunc, error) {
 	panicIfNil(l, "lexEofState", "lexer")
 	l.emit(eofToken, "")
-	return lexEofState, nil
+	return lexEOFState, nil
 }
 
 // emit send a token to the lexer's token channel
