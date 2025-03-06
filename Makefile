@@ -70,7 +70,7 @@ copywrite:
 
 .PHONY: install-staticcheck
 install-staticcheck: 
-	go install honnef.co/go/tools/cmd/staticcheck@latest
+	go install honnef.co/go/tools/cmd/staticcheck@v0.4.6
 
 .PHONY: lint
 lint: 
