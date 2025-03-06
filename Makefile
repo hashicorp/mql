@@ -55,15 +55,21 @@ tools:
 copywrite:
 	copywrite headers
 
-.PHONY: golangci-lint
-golangci-lint: 
-	$(eval	GOLINT_INSTALLED	:=	$(shell	which	golangci-lint))
-
-	if	[	"$(GOLINT_INSTALLED)"	=	""	];	then	\
+#.PHONY: golangci-lint
+#golangci-lint: 
+#	$(eval	GOLINT_INSTALLED	:=	$(shell	which	golangci-lint))
+#
+#	if	[	"$(GOLINT_INSTALLED)"	=	""	];	then	\
 		curl	-sSfL	\
 			https://raw.githubusercontent.com/golangci/golangci-lint/9a8a056e9fe49c0e9ed2287aedce1022c79a115b/install.sh	|	sh	-s	--	-b	$(pwd)	v1.64.6;	\
 	fi
-	export	PATH="$(pwd):$$PATH"
+#	export	PATH="$(pwd):$$PATH"
+
+#.PHONY: lint
+#lint: golangci-lint 
+
+.PHONY: install-staticcheck
+install-staticcheck: go install honnef.co/go/tools/cmd/staticcheck@latest
 
 .PHONY: lint
-lint: golangci-lint 
+lint: staticcheck ./...

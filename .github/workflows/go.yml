@@ -31,8 +31,8 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ matrix.go }}-${{ hashFiles('tests/go.mod') }}
 
-      - name: Download golangci-lint
-        run: make golangci-lint
+      - name: Download staticcheck
+        run: make install-staticcheck
 
       - name: Lint
         run: make lint
