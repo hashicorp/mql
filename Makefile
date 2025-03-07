@@ -48,6 +48,7 @@ coverage:
 
 .PHONY: tools
 tools:
+	install-staticcheck
 	go generate -tags tools tools/tools.go
 	go install github.com/hashicorp/copywrite@v0.15.0
 
