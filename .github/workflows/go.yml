@@ -33,6 +33,12 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ matrix.go }}-${{ hashFiles('tests/go.mod') }}
 
+      - name: Download tools
+        run: make tools
+
+      - name: Lint
+        run: make lint
+
       - name: Build
         run: |
           go build ./...

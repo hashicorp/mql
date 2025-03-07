@@ -48,9 +48,14 @@ coverage:
 
 .PHONY: tools
 tools:
+	go install honnef.co/go/tools/cmd/staticcheck@v0.4.6
 	go generate -tags tools tools/tools.go
 	go install github.com/hashicorp/copywrite@v0.15.0
 
 .PHONY: copywrite
 copywrite:
 	copywrite headers
+
+.PHONY: lint
+lint: 
+	staticcheck -checks=all,-U1000,-ST1023 ./...
