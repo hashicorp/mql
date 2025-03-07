@@ -47,8 +47,7 @@ coverage:
 	if ./cov-diff.sh ./coverage.log; then git restore coverage.log; fi
 
 .PHONY: tools
-tools:
-	install-staticcheck
+tools: install-staticcheck
 	go generate -tags tools tools/tools.go
 	go install github.com/hashicorp/copywrite@v0.15.0
 
