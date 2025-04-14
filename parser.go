@@ -184,10 +184,10 @@ func (p *parser) parseComparisonExpr() (expr, error) {
 		case cmpExpr.value == nil && (p.currentToken.Type != stringToken && p.currentToken.Type != numberToken && p.currentToken.Type != symbolToken):
 			return nil, fmt.Errorf("%s: %w %q in: %q", op, ErrUnexpectedToken, p.currentToken.Value, p.raw)
 		case cmpExpr.value == nil:
-			switch {
-			case p.currentToken.Type == symbolToken:
+			switch p.currentToken.Type {
+			case symbolToken:
 				return nil, fmt.Errorf("%s: %w %s == %s (expected: %s or %s) in %q", op, ErrInvalidComparisonValueType, p.currentToken.Type, p.currentToken.Value, stringToken, numberToken, p.raw)
-			case p.currentToken.Type == stringToken, p.currentToken.Type == numberToken:
+			case stringToken, numberToken:
 				s := p.currentToken.Value
 				cmpExpr.value = &s
 			default:

@@ -32,7 +32,7 @@ func fieldValidators(model reflect.Value, opt ...Option) (map[string]validator, 
 		model.Kind() == reflect.Pointer && model.Elem().Kind() != reflect.Struct:
 		return nil, fmt.Errorf("%s: model must be a struct or a pointer to a struct: %w", op, ErrInvalidParameter)
 	}
-	var m reflect.Value = model
+	m := model
 	if m.Kind() != reflect.Struct {
 		m = model.Elem()
 	}
