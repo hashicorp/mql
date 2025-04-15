@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/hashicorp/mql/lex.go (100.0%)</option>
 				
-				<option value="file3">github.com/hashicorp/mql/mql.go (98.2%)</option>
+				<option value="file3">github.com/hashicorp/mql/mql.go (98.3%)</option>
 				
 				<option value="file4">github.com/hashicorp/mql/options.go (100.0%)</option>
 				
@@ -770,18 +770,30 @@ func exprToWhereClause(e expr, fValidators map[string]validator, opt ...Option) 
                 case ok &amp;&amp; !isNil(validateConvertFn):<span class="cov8" title="1">
                         return validateConvertFn(v.column, v.comparisonOp, v.value)</span>
                 default:<span class="cov8" title="1">
-                        columnName := strings.ToLower(v.column)
-                        if n, ok := opts.withColumnMap[columnName]; ok </span><span class="cov8" title="1">{
-                                columnName = n
-                        }</span>
-                        <span class="cov8" title="1">validator, ok := fValidators[strings.ToLower(strings.ReplaceAll(columnName, "_", ""))]
-                        if !ok </span><span class="cov8" title="1">{
+                        var ok bool
+                        var validator validator
+                        columnName := v.column
+                        switch </span>{
+                        case opts.withColumnFieldTag != "":<span class="cov8" title="1">
+                                validator, ok = fValidators[columnName]</span>
+                        default:<span class="cov8" title="1">
+                                columnName = strings.ToLower(v.column)
+                                if n, ok := opts.withColumnMap[columnName]; ok </span><span class="cov8" title="1">{
+                                        columnName = n
+                                }</span>
+
+                                <span class="cov8" title="1">validator, ok = fValidators[strings.ToLower(strings.ReplaceAll(columnName, "_", ""))]</span>
+                        }
+
+                        <span class="cov8" title="1">if !ok </span><span class="cov8" title="1">{
                                 cols := make([]string, len(fValidators))
                                 for c := range fValidators </span><span class="cov8" title="1">{
                                         cols = append(cols, c)
                                 }</span>
+
                                 <span class="cov8" title="1">return nil, fmt.Errorf("%s: %w %q %s", op, ErrInvalidColumn, columnName, cols)</span>
                         }
+
                         <span class="cov8" title="1">w, err := defaultValidateConvert(columnName, v.comparisonOp, v.value, validator, opt...)
                         if err != nil </span><span class="cov8" title="1">{
                                 return nil, fmt.Errorf("%s: %w", op, err)
@@ -822,6 +834,7 @@ import (
 type options struct {
         withSkipWhitespace     bool
         withColumnMap          map[string]string
+        withColumnFieldTag     string
         withValidateConvertFns map[string]ValidateConvertFunc
         withIgnoredFields      []string
         withPgPlaceholder      bool
@@ -834,6 +847,7 @@ type Option func(*options) error
 func getDefaultOptions() options <span class="cov8" title="1">{
         return options{
                 withColumnMap:          make(map[string]string),
+                withColumnFieldTag:     "",
                 withValidateConvertFns: make(map[string]ValidateConvertFunc),
                 withTableColumnMap:     make(map[string]string),
         }
@@ -841,7 +855,6 @@ func getDefaultOptions() options <span class="cov8" title="1">{
 
 func getOpts(opt ...Option) (options, error) <span class="cov8" title="1">{
         opts := getDefaultOptions()
-
         for _, o := range opt </span><span class="cov8" title="1">{
                 if err := o(&amp;opts); err != nil </span><span class="cov8" title="1">{
                         return opts, err
@@ -861,11 +874,31 @@ func withSkipWhitespace() Option <span class="cov8" title="1">{
 // WithColumnMap provides an optional map of columns from the user
 // provided query to a field in the given model
 func WithColumnMap(m map[string]string) Option <span class="cov8" title="1">{
+        const op = "mql.WithColumnMap"
         return func(o *options) error </span><span class="cov8" title="1">{
                 if !isNil(m) </span><span class="cov8" title="1">{
-                        o.withColumnMap = m
-                }</span>
+                        if o.withColumnFieldTag != "" </span><span class="cov8" title="1">{
+                                return fmt.Errorf("%s: cannot be used with WithColumnFieldTag: %w", op, ErrInvalidParameter)
+                        }</span>
+                        <span class="cov8" title="1">o.withColumnMap = m</span>
+                }
                 <span class="cov8" title="1">return nil</span>
+        }
+}
+
+// WithColumnFieldTag provides an optional struct tag to use for field mapping
+// If a field has this tag, the tag value will be used instead of the field name
+func WithColumnFieldTag(tagName string) Option <span class="cov8" title="1">{
+        const op = "mql.WithColumnFieldTag"
+        return func(o *options) error </span><span class="cov8" title="1">{
+                if tagName == "" </span><span class="cov8" title="1">{
+                        return fmt.Errorf("%s: empty tag name: %w", op, ErrInvalidParameter)
+                }</span>
+                <span class="cov8" title="1">if len(o.withColumnMap) &gt; 0 </span><span class="cov8" title="1">{
+                        return fmt.Errorf("%s: cannot be used with WithColumnMap: %w", op, ErrInvalidParameter)
+                }</span>
+                <span class="cov8" title="1">o.withColumnFieldTag = tagName
+                return nil</span>
         }
 }
 
@@ -1359,14 +1392,29 @@ func fieldValidators(model reflect.Value, opt ...Option) (map[string]validator, 
 
         <span class="cov8" title="1">fValidators := make(map[string]validator)
         for i := 0; i &lt; m.NumField(); i++ </span><span class="cov8" title="1">{
-                if slices.Contains(opts.withIgnoredFields, m.Type().Field(i).Name) </span><span class="cov8" title="1">{
+                field := m.Type().Field(i)
+                if slices.Contains(opts.withIgnoredFields, field.Name) </span><span class="cov8" title="1">{
                         continue</span>
                 }
 
-                <span class="cov8" title="1">fName := strings.ToLower(m.Type().Field(i).Name)
+                <span class="cov8" title="1">var fName string
+                switch </span>{
+                case opts.withColumnFieldTag != "":<span class="cov8" title="1">
+                        tagValue := field.Tag.Get(opts.withColumnFieldTag)
+                        if tagValue != "" </span><span class="cov8" title="1">{
+                                parts := strings.SplitN(tagValue, ",", 2)
+                                fName = parts[0]
+                        }</span>
+                        <span class="cov8" title="1">if fName == "" </span><span class="cov8" title="1">{
+                                return nil, fmt.Errorf("%s: field %q has an invalid tag %q: %w", op, field.Name, opts.withColumnFieldTag, ErrInvalidParameter)
+                        }</span>
+                default:<span class="cov8" title="1">
+                        fName = strings.ToLower(field.Name)</span>
+                }
+
                 // get a string val of the field type, then strip any leading '*' so we
                 // can simplify the switch below when dealing with types like *int and int.
-                fType := strings.TrimPrefix(m.Type().Field(i).Type.String(), "*")
+                <span class="cov8" title="1">fType := strings.TrimPrefix(m.Type().Field(i).Type.String(), "*")
                 switch fType </span>{
                 case "float32", "float64":<span class="cov8" title="1">
                         fValidators[fName] = validator{fn: validateFloat, typ: "float"}</span>

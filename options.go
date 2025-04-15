@@ -10,6 +10,7 @@ import (
 type options struct {
 	withSkipWhitespace     bool
 	withColumnMap          map[string]string
+	withColumnFieldTag     string
 	withValidateConvertFns map[string]ValidateConvertFunc
 	withIgnoredFields      []string
 	withPgPlaceholder      bool
@@ -22,6 +23,7 @@ type Option func(*options) error
 func getDefaultOptions() options {
 	return options{
 		withColumnMap:          make(map[string]string),
+		withColumnFieldTag:     "",
 		withValidateConvertFns: make(map[string]ValidateConvertFunc),
 		withTableColumnMap:     make(map[string]string),
 	}
@@ -29,7 +31,6 @@ func getDefaultOptions() options {
 
 func getOpts(opt ...Option) (options, error) {
 	opts := getDefaultOptions()
-
 	for _, o := range opt {
 		if err := o(&opts); err != nil {
 			return opts, err
@@ -49,10 +50,30 @@ func withSkipWhitespace() Option {
 // WithColumnMap provides an optional map of columns from the user
 // provided query to a field in the given model
 func WithColumnMap(m map[string]string) Option {
+	const op = "mql.WithColumnMap"
 	return func(o *options) error {
 		if !isNil(m) {
+			if o.withColumnFieldTag != "" {
+				return fmt.Errorf("%s: cannot be used with WithColumnFieldTag: %w", op, ErrInvalidParameter)
+			}
 			o.withColumnMap = m
 		}
+		return nil
+	}
+}
+
+// WithColumnFieldTag provides an optional struct tag to use for field mapping
+// If a field has this tag, the tag value will be used instead of the field name
+func WithColumnFieldTag(tagName string) Option {
+	const op = "mql.WithColumnFieldTag"
+	return func(o *options) error {
+		if tagName == "" {
+			return fmt.Errorf("%s: empty tag name: %w", op, ErrInvalidParameter)
+		}
+		if len(o.withColumnMap) > 0 {
+			return fmt.Errorf("%s: cannot be used with WithColumnMap: %w", op, ErrInvalidParameter)
+		}
+		o.withColumnFieldTag = tagName
 		return nil
 	}
 }
