@@ -3,9 +3,13 @@
 Canonical reference for changes, improvements, and bugfixes for mql.
 
 ## Next
+
+## 0.1.5
+
 * fix (parser): fix issue #42 related to WS before rparen in [[PR](https://github.com/hashicorp/mql/pull/47)]
 * feat: add support for table column mapping by @dlclark in [[PR](https://github.com/hashicorp/mql/pull/45)]
 * feat: add support for table column name from struct tags @terminalfi in [[PR](https://github.com/hashicorp/mql/pull/50)]
+* chore: update deps by @jimlambrt in [[PR](https://github.com/hashicorp/mql/pull/54)]
 
 ## 0.1.4 (2024/05/14)
 
