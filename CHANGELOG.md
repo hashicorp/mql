@@ -5,6 +5,8 @@ Canonical reference for changes, improvements, and bugfixes for mql.
 ## Next
 * fix (parser): fix issue #42 related to WS before rparen in [[PR](https://github.com/hashicorp/mql/pull/47)]
 * feat: add support for table column mapping by @dlclark in [[PR](https://github.com/hashicorp/mql/pull/45)]
+* ci: run linter during PR build
+* chore: fix various lint issues
 
 ## 0.1.4 (2024/05/14)
 
