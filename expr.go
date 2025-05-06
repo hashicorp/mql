@@ -166,9 +166,8 @@ func (l *logicalExpr) String() string {
 // root will return the root of the expr tree
 func root(lExpr *logicalExpr, raw string) (expr, error) {
 	const op = "mql.root"
-	switch lExpr {
 	// intentionally not checking raw, since can be an empty string
-	case nil:
+	if lExpr == nil {
 		return nil, fmt.Errorf("%s: %w (missing expression)", op, ErrInvalidParameter)
 	}
 	logicalOp := lExpr.logicalOp
