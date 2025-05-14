@@ -17,16 +17,20 @@ import (
 )
 
 type testModel struct {
-	ID           uint
-	Name         string
-	Email        *string
-	Age          uint8
-	Length       float32
-	Birthday     *time.Time
-	MemberNumber sql.NullString
-	ActivatedAt  sql.NullTime
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID           uint           `column:"id"`
+	Name         string         `column:"name"`
+	Email        *string        `column:"email_address"`
+	Age          uint8          `column:"age"`
+	Length       float32        `column:"length"`
+	Birthday     *time.Time     `column:"birthday"`
+	MemberNumber sql.NullString `column:"member_number"`
+	ActivatedAt  sql.NullTime   `column:"activated_at"`
+	CreatedAt    time.Time      `column:"created_at"`
+	UpdatedAt    time.Time      `column:"updated_at"`
+}
+
+type testInvalidFieldTag struct {
+	Name string `column:",omitempty"`
 }
 
 func TestParse(t *testing.T) {
@@ -331,6 +335,76 @@ func TestParse(t *testing.T) {
 				Condition: "users.custom->>'name'=?",
 				Args:      []any{"alice"},
 			},
+		},
+		{
+			name:  "success-WithColumnFieldTag",
+			query: "name=\"alice\" and email_address=\"eve@example.com\"",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithColumnFieldTag("column"),
+			},
+			want: &mql.WhereClause{
+				Condition: "(name=? and email_address=?)",
+				Args:      []any{"alice", "eve@example.com"},
+			},
+		},
+		{
+			name:  "err-WithColumnFieldTag",
+			query: "name=\"alice\" and email=\"eve@example.com\"",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithColumnFieldTag("column"),
+			},
+			wantErrIs:       mql.ErrInvalidColumn,
+			wantErrContains: `invalid column "email"`,
+		},
+		{
+			name:  "err-missing-tag-WithColumnFieldTag",
+			query: "name=\"alice\" and email=\"eve@example.com\"",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithColumnFieldTag(""),
+			},
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: `empty tag name`,
+		},
+		{
+			name:  "err-invalid-tag-WithColumnFieldTag",
+			query: "name=\"alice\"",
+			model: testInvalidFieldTag{},
+			opts: []mql.Option{
+				mql.WithColumnFieldTag("column"),
+			},
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: `has an invalid tag`,
+		},
+		{
+			name:  "err-mutually-exclusive-WithColumnFieldTag",
+			query: "name=\"alice\" and email=\"eve@example.com\"",
+			model: testModel{},
+			opts: []mql.Option{
+				mql.WithColumnMap(map[string]string{
+					"name":  "Name",
+					"email": "Email",
+				}),
+				mql.WithColumnFieldTag("column"),
+			},
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: `cannot be used with WithColumnMap`,
+		},
+		{
+			name:  "err-mutually-exclusive-2-WithColumnFieldTa",
+			query: "name=\"alice\"",
+			model: testInvalidFieldTag{},
+			opts: []mql.Option{
+				mql.WithColumnFieldTag("column"),
+				mql.WithColumnMap(map[string]string{
+					"name":  "Name",
+					"email": "Email",
+				}),
+			},
+			wantErrIs:       mql.ErrInvalidParameter,
+			wantErrContains: `cannot be used with WithColumnFieldTag`,
 		},
 	}
 	for _, tc := range tests {
