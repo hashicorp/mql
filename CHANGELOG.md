@@ -10,6 +10,8 @@ Canonical reference for changes, improvements, and bugfixes for mql.
 * feat: add support for table column mapping by @dlclark in [[PR](https://github.com/hashicorp/mql/pull/45)]
 * feat: add support for table column name from struct tags @terminalfi in [[PR](https://github.com/hashicorp/mql/pull/50)]
 * chore: update deps by @jimlambrt in [[PR](https://github.com/hashicorp/mql/pull/54)]
+* ci: run linter during PR build in [[PR](https://github.com/hashicorp/mql/pull/52)]
+* chore: fix various lint issues in [[PR](https://github.com/hashicorp/mql/pull/52)]
 
 ## 0.1.4 (2024/05/14)
 

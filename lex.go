@@ -123,24 +123,24 @@ WriteToBuf:
 	// keep reading runes into the buffer until we encounter eof or the final delimiter.
 	for {
 		r = l.read()
-		switch {
-		case r == eof:
+		switch r {
+		case eof:
 			break WriteToBuf
-		case r == backslash:
+		case backslash:
 			nextR := l.read()
-			switch {
-			case nextR == eof:
+			switch nextR {
+			case eof:
 				tokenBuf.WriteRune(r)
 				return nil, fmt.Errorf("%s: %w in %q", op, ErrInvalidTrailingBackslash, tokenBuf.String())
-			case nextR == backslash:
+			case backslash:
 				tokenBuf.WriteRune(nextR)
-			case nextR == delimiter:
+			case delimiter:
 				tokenBuf.WriteRune(nextR)
 			default:
 				tokenBuf.WriteRune(r)
 				tokenBuf.WriteRune(nextR)
 			}
-		case r == delimiter: // end of the quoted string we're scanning
+		case delimiter: // end of the quoted string we're scanning
 			finalDelimiter = true
 			break WriteToBuf
 		default: // otherwise, write the rune into the keyword buffer
@@ -160,7 +160,7 @@ WriteToBuf:
 // orToken, andToken, containsToken
 func lexSymbolState(l *lexer) (lexStateFunc, error) {
 	const op = "mql.lexSymbolState"
-	panicIfNil(l, "lexSymbolState", "lexer")
+	panicIfNil(l, op, "lexer")
 	defer l.current.clear()
 
 ReadRunes:
