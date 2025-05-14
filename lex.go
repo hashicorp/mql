@@ -159,7 +159,8 @@ WriteToBuf:
 // lexSymbolState scans for strings and can emit the following tokens:
 // orToken, andToken, containsToken
 func lexSymbolState(l *lexer) (lexStateFunc, error) {
-	panicIfNil(l, "lexSymbolState", "lexer")
+	const op = "mql.lexSymbolState"
+	panicIfNil(l, op, "lexer")
 	defer l.current.clear()
 
 ReadRunes:
