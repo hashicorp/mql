@@ -1,13 +1,13 @@
 module github.com/hashicorp/mql/tests/postgres
 
-go 1.22
+go 1.23.0
 
 require (
-	github.com/hashicorp/go-dbw v0.1.2
-	github.com/hashicorp/mql v0.1.1-0.20230816193610-066beca8effe
-	github.com/stretchr/testify v1.9.0
-	gorm.io/driver/postgres v1.5.7
-	gorm.io/gorm v1.25.10
+	github.com/hashicorp/go-dbw v0.1.4
+	github.com/hashicorp/mql v0.1.5
+	github.com/stretchr/testify v1.10.0
+	gorm.io/driver/postgres v1.5.9
+	gorm.io/gorm v1.25.11
 )
 
 require (
@@ -22,14 +22,12 @@ require (
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
-	github.com/jackc/pgtype v1.14.3 // indirect
-	github.com/jackc/pgx/v4 v4.18.3 // indirect
-	github.com/jackc/pgx/v5 v5.5.5 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/pgx/v5 v5.6.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/lib/pq v1.10.4 // indirect
+	github.com/kr/text v0.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
@@ -37,10 +35,10 @@ require (
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/xo/dburl v0.23.1 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
-	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb // indirect
-	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
+	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gorm.io/driver/sqlite v1.5.5 // indirect
+	gorm.io/driver/sqlite v1.5.6 // indirect
 )
