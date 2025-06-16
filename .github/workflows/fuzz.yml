@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
         # commit hash == v1.2.0
-      - uses: jidicula/go-fuzz-action@56d77b1f65ed7791cd17d5ee899379da97625851 # TSCCR: no entry for action: "jidicula/go-fuzz-action"
+      - uses: jidicula/go-fuzz-action@2d8b802597c47a79764d83dabc27fb672f2fb8d9 # TSCCR: no entry for action: "jidicula/go-fuzz-action"
         with:
           fuzz-time: 30s
           fuzz-regexp: Fuzz_lexerNextToken
@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
         # commit hash == v1.2.0
-      - uses: jidicula/go-fuzz-action@56d77b1f65ed7791cd17d5ee899379da97625851 # TSCCR: no entry for action: "jidicula/go-fuzz-action"
+      - uses: jidicula/go-fuzz-action@2d8b802597c47a79764d83dabc27fb672f2fb8d9 # TSCCR: no entry for action: "jidicula/go-fuzz-action"
         with:
           fuzz-time: 30s
           fuzz-regexp: Fuzz_parserParse
@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
         # commit hash == v1.2.0
-      - uses: jidicula/go-fuzz-action@56d77b1f65ed7791cd17d5ee899379da97625851 # TSCCR: no entry for action: "jidicula/go-fuzz-action"
+      - uses: jidicula/go-fuzz-action@2d8b802597c47a79764d83dabc27fb672f2fb8d9 # TSCCR: no entry for action: "jidicula/go-fuzz-action"
         with:
           fuzz-time: 30s
           fuzz-regexp: Fuzz_mqlParse
