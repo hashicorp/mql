@@ -35,12 +35,12 @@ func Test_postgres(t *testing.T) {
 	}{
 		{
 			name:  "simple",
-			query: "name=one and age>0",
+			query: `name="one" and age>0`,
 			want:  []*user{{ID: 1, Name: "one", Email: pointer("one@example.com"), Age: 1, CreatedAt: now.Add(1 * 24 * time.Hour)}},
 		},
 		{
 			name:  "WithConverter",
-			query: fmt.Sprintf(`name=one or (created_at>%s)`, time.Now().Add(2*24*time.Hour).Format("2006-01-02")),
+			query: fmt.Sprintf(`name="one" or (created_at>%q)`, time.Now().Add(2*24*time.Hour).Format("2006-01-02")),
 			opts: []mql.Option{
 				mql.WithConverter("created_at", func(columnName string, comparisonOp mql.ComparisonOp, value *string) (*mql.WhereClause, error) {
 					return &mql.WhereClause{
@@ -53,7 +53,7 @@ func Test_postgres(t *testing.T) {
 		},
 		{
 			name:  "default-time-converter",
-			query: fmt.Sprintf(`name=one or (created_at>%s)`, time.Now().Add(2*24*time.Hour).Format("2006-01-02")),
+			query: fmt.Sprintf(`name="one" or (created_at>%q)`, time.Now().Add(2*24*time.Hour).Format("2006-01-02")),
 			want:  []*user{{ID: 1, Name: "one", Email: pointer("one@example.com"), Age: 1, CreatedAt: now.Add(1 * 24 * time.Hour)}},
 		},
 	}
