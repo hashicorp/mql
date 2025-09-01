@@ -5,9 +5,9 @@ go 1.23.0
 require (
 	github.com/hashicorp/go-dbw v0.1.4
 	github.com/hashicorp/mql v0.1.5
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	gorm.io/driver/postgres v1.6.0
-	gorm.io/gorm v1.30.1
+	gorm.io/gorm v1.30.2
 )
 
 require (
