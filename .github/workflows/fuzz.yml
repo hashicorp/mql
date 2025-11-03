@@ -10,25 +10,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
         # commit hash == v1.2.0
-      - uses: jidicula/go-fuzz-action@94694730887c9c0b8431d36c878f1b1bd368b7ff # TSCCR: no entry for action: "jidicula/go-fuzz-action"
+      - uses: jidicula/go-fuzz-action@ea33f9835ea7f6071339827df940b777dfc78d11 # TSCCR: no entry for action: "jidicula/go-fuzz-action"
         with:
           fuzz-time: 30s
           fuzz-regexp: Fuzz_lexerNextToken
+          go-version: 1.25
   fuzz-parser-test:
     name: Fuzz parser test
     runs-on: ubuntu-latest
     steps:
         # commit hash == v1.2.0
-      - uses: jidicula/go-fuzz-action@94694730887c9c0b8431d36c878f1b1bd368b7ff # TSCCR: no entry for action: "jidicula/go-fuzz-action"
+      - uses: jidicula/go-fuzz-action@ea33f9835ea7f6071339827df940b777dfc78d11 # TSCCR: no entry for action: "jidicula/go-fuzz-action"
         with:
           fuzz-time: 30s
           fuzz-regexp: Fuzz_parserParse
+          go-version: 1.25
   fuzz-mql-Parse-test:
     name: Fuzz mql.Parse test
     runs-on: ubuntu-latest
     steps:
         # commit hash == v1.2.0
-      - uses: jidicula/go-fuzz-action@94694730887c9c0b8431d36c878f1b1bd368b7ff # TSCCR: no entry for action: "jidicula/go-fuzz-action"
+      - uses: jidicula/go-fuzz-action@ea33f9835ea7f6071339827df940b777dfc78d11 # TSCCR: no entry for action: "jidicula/go-fuzz-action"
         with:
           fuzz-time: 30s
           fuzz-regexp: Fuzz_mqlParse
+          go-version: 1.25
