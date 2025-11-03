@@ -1,6 +1,6 @@
 module github.com/hashicorp/mql/tests/postgres
 
-go 1.23.0
+go 1.24.0
 
 require (
 	github.com/hashicorp/go-dbw v0.1.4
