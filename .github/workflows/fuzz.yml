@@ -14,6 +14,7 @@ jobs:
         with:
           fuzz-time: 30s
           fuzz-regexp: Fuzz_lexerNextToken
+          go-version: 1.25
   fuzz-parser-test:
     name: Fuzz parser test
     runs-on: ubuntu-latest
@@ -23,6 +24,7 @@ jobs:
         with:
           fuzz-time: 30s
           fuzz-regexp: Fuzz_parserParse
+          go-version: 1.25
   fuzz-mql-Parse-test:
     name: Fuzz mql.Parse test
     runs-on: ubuntu-latest
@@ -32,3 +34,4 @@ jobs:
         with:
           fuzz-time: 30s
           fuzz-regexp: Fuzz_mqlParse
+          go-version: 1.25
